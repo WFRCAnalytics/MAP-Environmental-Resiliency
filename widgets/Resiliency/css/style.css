@@ -1,3 +1,32 @@
+
+.categorylist {
+  width: 320px;
+  padding: 10px;
+  white-space: nowrap;
+  overflow: auto;
+}
+.categoryitem {
+  width: 250px;
+  display: inline-block;
+  vertical-align: middle;
+  text-overflow:ellipsis;
+  overflow: hidden;
+}
+.grouptitle{
+  height: 20px;
+  width: 100%;
+  display: inline-block;
+  text-overflow:ellipsis;
+  overflow: hidden;
+}
+
+.unstyled-button {
+  border: none;
+  padding: 0;
+}
+
+
+
 th, td {
   padding: 2px;
 }

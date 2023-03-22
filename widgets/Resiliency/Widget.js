@@ -1,3 +1,6 @@
+jsonCategories = 'widgets/Resiliency/data/categories.json'
+jsonLayers     = 'widgets/Resiliency/data/opendatalayers.json'
+
 var dCounties = [  // COUNTYNBR
   { label: "Weber    ", value: "29" },
   { label: "Davis    ", value: "06" },
@@ -65,8 +68,8 @@ var aCategoryWeights_Saved = ['1.0000', '1.0000', '1.0000', '1.0000', '1.0000', 
 
 var sCurCommunities = "";
 var dCurCommunities = [];
-var lyrCommunity;
-var lyrCommunity_Selected;
+var lyrProject;
+var lyrProject_Selected;
 var sCommunityLayer = 'Communities';
 var sCommunityLayer_Selected = 'Communities-Selected';
 
@@ -155,12 +158,12 @@ define(['dojo/_base/declare',
         for (var j = 0, jl = layerInfosObject._layerInfos.length; j < jl; j++) {
           var currentLayerInfo = layerInfosObject._layerInfos[j];
           if (currentLayerInfo.title == sCommunityLayer) {
-            lyrCommunity = layerInfosObject._layerInfos[j].layerObject;
+            lyrProject = layerInfosObject._layerInfos[j].layerObject;
             console.log(sCommunityLayer + ' Found');
           } else if (currentLayerInfo.title == sCommunityLayer_Selected) {
-            lyrCommunity_Selected = layerInfosObject._layerInfos[j].layerObject;
-            lyrCommunity_Selected.setDefinitionExpression("CommCode IN ('NONE')");
-            lyrCommunity_Selected.show();
+            lyrProject_Selected = layerInfosObject._layerInfos[j].layerObject;
+            lyrProject_Selected.setDefinitionExpression("CommCode IN ('NONE')");
+            lyrProject_Selected.show();
             console.log(sCommunityLayer_Selected + ' Found');
           } else if (currentLayerInfo.title == sParcelPiecesLayer) {
             lyrParcelPieces = layerInfosObject._layerInfos[j].layerObject;
@@ -171,14 +174,44 @@ define(['dojo/_base/declare',
         }
 
 
-        // Populate classbreaks object - for forecast years
+        // Populate categories object
         dojo.xhrGet({
-          url: "widgets/Housing/data/communities.json",
+          url: jsonCategories,
           handleAs: "json",
           load: function (obj) {
             /* here, obj will already be a JS object deserialized from the JSON response */
-            console.log('communities.json');
-            dCommunities = obj;
+            console.log(jsonCategories);
+            dCategories = obj;
+          },
+          error: function (err) {
+            /* this will execute if the response couldn't be converted to a JS object,
+               or if the request was unsuccessful altogether. */
+          }
+        });
+
+        // Populate categories object
+        dojo.xhrGet({
+          url: jsonLayers,
+          handleAs: "json",
+          load: function (obj) {
+            /* here, obj will already be a JS object deserialized from the JSON response */
+            console.log(jsonLayers);
+            dLayers = obj;
+          },
+          error: function (err) {
+            /* this will execute if the response couldn't be converted to a JS object,
+               or if the request was unsuccessful altogether. */
+          }
+        });
+
+        // Populate projects
+        dojo.xhrGet({
+          url: jsonProjects,
+          handleAs: "json",
+          load: function (obj) {
+            /* here, obj will already be a JS object deserialized from the JSON response */
+            console.log(jsonProjects);
+            dProjects = obj;
           },
           error: function (err) {
             /* this will execute if the response couldn't be converted to a JS object,
@@ -242,7 +275,7 @@ define(['dojo/_base/declare',
           query.returnGeometry = false;
           query.outFields = ["*"];
 
-          var queryCommunity = new QueryTask(lyrCommunity.url);
+          var queryCommunity = new QueryTask(lyrProject.url);
           queryCommunity.execute(query, clickCommunity);
 
           //Segment search results
@@ -262,8 +295,8 @@ define(['dojo/_base/declare',
                 sCurCommunities = "'" + dCurCommunities.join("','") + "'";
 
                 //change selection
-                lyrCommunity_Selected.setDefinitionExpression('CommCode IN (' + sCurCommunities + ')')
-                lyrCommunity.setDefinitionExpression('CommCode NOT IN (' + sCurCommunities + ')')
+                lyrProject_Selected.setDefinitionExpression('CommCode IN (' + sCurCommunities + ')')
+                lyrProject.setDefinitionExpression('CommCode NOT IN (' + sCurCommunities + ')')
 
                 wH._afterChangeCommunity();
 
@@ -286,8 +319,8 @@ define(['dojo/_base/declare',
                   }
 
                   //change selection
-                  lyrCommunity_Selected.setDefinitionExpression('CommCode IN (' + sCurCommunities + ')')
-                  lyrCommunity.setDefinitionExpression('CommCode NOT IN (' + sCurCommunities + ')')
+                  lyrProject_Selected.setDefinitionExpression('CommCode IN (' + sCurCommunities + ')')
+                  lyrProject.setDefinitionExpression('CommCode NOT IN (' + sCurCommunities + ')')
                   wH._afterChangeCommunity();
 
                 };
@@ -647,9 +680,9 @@ define(['dojo/_base/declare',
         //    lyrParcelPieces.show();
         //}
         //if (sCurCommunities=="''" || sCurCommunities=="'__'") {
-        //    lyrCommunity.show();
+        //    lyrProject.show();
         //} else {
-        //    lyrCommunity.hide();
+        //    lyrProject.hide();
         //}
       },
 
@@ -702,7 +735,7 @@ define(['dojo/_base/declare',
       _zoomToCommunity: function () {
         console.log('_zoomToCommunity');
 
-        queryTask = new esri.tasks.QueryTask(lyrCommunity.url);
+        queryTask = new esri.tasks.QueryTask(lyrProject.url);
 
         query = new esri.tasks.Query();
         query.returnGeometry = true;
@@ -773,7 +806,63 @@ define(['dojo/_base/declare',
           aCategoryWeights_Saved[i] = "0.0000";
         }
         wH._updateDisplay();
-      }
+      },
+
+      BuildMenu: function(){
+        console.log('BuildMenu');
+        
+        var divMenu = dom.byId("menu");
+        
+        dojo.forEach(dijit.findWidgets(divResults), function(w) {
+          w.destroyRecursive();
+        });
+        
+        dojo.empty(divResults);
+
+        var aCategories = ['Urban','Rural'];
+        var aReportTitles = ['Non-State-Route Corridors','Partial-State-Route Corridors','Low-Scoring State-Route Corridors'];
+
+        for (var k = 0; k < 2; k++) {
+          dojo.place("<div class = \"grouptitle\"><p class=\"thicker\">" + aCategories[k] + " " + aReportTitles[j] + "</div>", "resultssection");        
+          dojo.place("<hr>&nbsp;&nbsp;&nbsp;<b>Ref #&nbsp;&nbsp;&nbsp;&nbsp;Corridor Name</b><hr>", "resultssection");
+          for (var l = 0; l < aResultGroup.length; l++) {
+            if (aGroups[j] == aResultGroup[l] && aCategories[k] == aResultCategories[l]) {
+                
+              if (aResultTiers[l] == 1) {
+                sBGColor="#ED2024";
+                sFGColor="#FFFFFF";
+              } else if (aResultTiers[l] == 2) {
+                sBGColor="#37A949";
+                sFGColor="#FFFFFF";
+              } else if (aResultTiers[l] == 3) {
+                sBGColor="#37C2F1";
+                sFGColor="#FFFFFF";
+              } else {
+                sBGColor="#222222";
+                sFGColor="#FFFFFF";
+              }
+              
+              var button3 = new Button({ label:aResultRefLabel[l], id:"button_" + aResultRefLabel[l]});
+              button3.startup();
+              button3.placeAt(divResults);
+              button3.on("click", this.ZoomToCorridor);
+              
+              dojo.style("button_" + aResultRefLabel[l],"width","40px");
+              dojo.style("button_" + aResultRefLabel[l],"height","16px");
+              dojo.style("button_" + aResultRefLabel[l],"background",sBGColor);
+              dojo.style("button_" + aResultRefLabel[l],"color",sFGColor);
+              
+              dojo.place("<div class = \"corridoritem\">&nbsp;&nbsp;" + aResultNames[l] + "</div></br>", "resultssection");
+              
+              //dojo.create("div", { id:, innerHTML: "<p>hi</p>" }, "divResults");
+              
+              //divResults.innerHTML += "</br>";
+              
+            }
+          }
+          dojo.place("</br></br></br>", "resultssection");
+        }
+      },
 
       // onOpen: function(){
       //   console.log('onOpen');

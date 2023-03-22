@@ -1,0 +1,9 @@
+{
+  "serviceURL": "https://print.agrc.utah.gov/6/arcgis/rest/services/GPServer/export",
+  "defaultTitle": "Residential Accessibility",
+  "defaultAuthor": "",
+  "defaultCopyright": "",
+  "defaultFormat": "PDF",
+  "defaultLayout": "Tabloid ANSI B Landscape",
+  "copyrightEditable": false
+}

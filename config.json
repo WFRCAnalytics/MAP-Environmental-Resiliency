@@ -2,29 +2,26 @@
   "theme": {
     "name": "JewelryBoxTheme",
     "styles": [
-      "yellow",
-      "purple",
       "red",
+      "green",
       "cyan",
+      "purple",
       "blue",
+      "yellow",
       "black",
-      "default",
-      "green"
+      "default"
     ],
     "version": "2.20",
     "sharedTheme": {
       "isPortalSupport": true,
       "useHeader": false,
       "useLogo": false
-    },
-    "customStyles": {
-      "mainBackgroundColor": "#2aa99d"
     }
   },
   "portalUrl": "https://wfrc.maps.arcgis.com",
   "appId": "",
   "authorizedCrossOriginDomains": [],
-  "title": "Wasatch Front Housing ATO Calculator - BETA VERSION",
+  "title": "Environmental Resiliency",
   "subtitle": "Wasatch Front Regional Council",
   "keepAppState": true,
   "logo": "images/logo.png",
@@ -179,7 +176,8 @@
         "version": "2.20",
         "id": "widgets_Splash_Widget_32",
         "name": "Splash",
-        "config": "configs/Splash/config_widgets_Splash_Widget_32.json"
+        "config": "configs/Splash/config_widgets_Splash_Widget_32.json",
+        "visible": false
       },
       {
         "uri": "widgets/ZoomSlider/Widget",
@@ -235,15 +233,15 @@
         "id": "_20",
         "widgets": [
           {
-            "name": "Housing",
+            "name": "Resiliency",
             "version": "2.20",
             "IsController": false,
-            "uri": "widgets/Housing/Widget",
-            "id": "widgets_Housing_Widget_36"
+            "uri": "widgets/Resiliency/Widget",
+            "id": "widgets_Resiliency_Widget_36"
           }
         ],
         "label": "Group 0",
-        "icon": "widgets/Housing/images/icon.png?wab_dv=2.20"
+        "icon": "widgets/Resiliency/images/icon.png?wab_dv=2.20"
       }
     ],
     "panel": {

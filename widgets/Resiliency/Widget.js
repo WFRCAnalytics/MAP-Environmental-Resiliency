@@ -81,7 +81,7 @@ var curLandUseFilter = "'AG','EM','OS','CH','SF','MF','GQ','GO','ED','HE','RE','
 // which cities have utah qualified opportunity zones
 var UtahQualOppZoneCities = "'OG','SO'"
 
-var wH;
+var wR;
 var maxScore_Places = 0.0;
 var maxScore_Access = 0.0;
 var maxScore_Transp = 0.0;
@@ -105,6 +105,10 @@ var strSelectedPriorities = '';
 
 define(['dojo/_base/declare',
   'dojo/dom',
+  'dojo/dom-style',
+  'dojo/dom-construct',
+  'dojo/on',
+  'dijit/registry',
   'jimu/BaseWidget',
   'dijit/form/CheckBox',
   'dojo/html',
@@ -125,7 +129,7 @@ define(['dojo/_base/declare',
   'jimu/PanelManager',
   'esri/graphic',
   'dojo/store/Memory'],
-  function (declare, dom, BaseWidget, CheckBox, html, domReady, FeatureLayer, LayerInfos, Select, Button, ComboBox, Query, QueryTask, Extent, UniqueValueRenderer, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol, Color, PanelManager, Graphic, Memory) {
+  function (declare, dom, domStyle, domConstruct, on, registry, BaseWidget, CheckBox, html, domReady, FeatureLayer, LayerInfos, Select, Button, ComboBox, Query, QueryTask, Extent, UniqueValueRenderer, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol, Color, PanelManager, Graphic, Memory) {
     //To create a widget, you need to derive from BaseWidget.
     return declare([BaseWidget], {
       // Custom widget code goes here
@@ -148,7 +152,7 @@ define(['dojo/_base/declare',
         //this.mapIdNode.innerHTML = 'map id:' + this.map.id;
         console.log('startup');
 
-        wH = this;
+        wR = this;
         this.map.setInfoWindowOnClick(false); // turn off info window (popup) when clicking a feature
 
         dom.byId('addText').innerHTML = sClickOnMapText;
@@ -181,7 +185,8 @@ define(['dojo/_base/declare',
           load: function (obj) {
             /* here, obj will already be a JS object deserialized from the JSON response */
             console.log(jsonCategories);
-            dCategories = obj;
+            dCategories = obj.data;
+            wR._buildMenu();
           },
           error: function (err) {
             /* this will execute if the response couldn't be converted to a JS object,
@@ -196,7 +201,8 @@ define(['dojo/_base/declare',
           load: function (obj) {
             /* here, obj will already be a JS object deserialized from the JSON response */
             console.log(jsonLayers);
-            dLayers = obj;
+            dLayers = obj.data;
+            wR._buildMenu();
           },
           error: function (err) {
             /* this will execute if the response couldn't be converted to a JS object,
@@ -204,65 +210,32 @@ define(['dojo/_base/declare',
           }
         });
 
-        // Populate projects
-        dojo.xhrGet({
-          url: jsonProjects,
-          handleAs: "json",
-          load: function (obj) {
-            /* here, obj will already be a JS object deserialized from the JSON response */
-            console.log(jsonProjects);
-            dProjects = obj;
-          },
-          error: function (err) {
-            /* this will execute if the response couldn't be converted to a JS object,
-               or if the request was unsuccessful altogether. */
-          }
-        });
-
-        // Map display zones
-        var _cmbLandUseFilter = new Select({
-          id: "selectLandUseFilter",
-          name: "selectLandUseFilterName",
-          options: dLandUseFilter,
-          onChange: function () {
-            curLandUseFilter = this.value;
-            wH._updateDisplay();
-          }
-        }, "cmbLandUseFilter");
-        _cmbLandUseFilter.startup();
-        _cmbLandUseFilter.set("value", curLandUseFilter);
-
-        // set change event for categories
-        for (let i = 0; i < aCategories.length; i++) {
-          console.log('Set onchange events for ' + aCategories[i])
-          dom.byId('rank' + aCategories[i]).onchange = function () {
-            // updated saved for use when switching between communities that may not have values category, which would set the value to zer
-            aCategoryWeights_Saved[i] = this.value;
-
-            wH._updateDisplay();
-            wH.publishData({
-              message: curParcelPieceUNIQID
-            });
-          };
-          dom.byId('chk' + aCategories[i]).onchange = function () {
-            wH._turnOnOffLayers();
-          };
-        }
-        dom.byId('opportunityzones').onchange = function () {
-          wH._updateDisplay();
-        };
+        //// Populate projects
+        //dojo.xhrGet({
+        //  url: jsonProjects,
+        //  handleAs: "json",
+        //  load: function (obj) {
+        //    /* here, obj will already be a JS object deserialized from the JSON response */
+        //    console.log(jsonProjects);
+        //    dProjects = obj;
+        //  },
+        //  error: function (err) {
+        //    /* this will execute if the response couldn't be converted to a JS object,
+        //       or if the request was unsuccessful altogether. */
+        //  }
+        //});
 
         //setup click functionality
         this.map.on('click', selectParcelPiece);
 
         function pointToExtent(map, point, toleranceInPixel) {
-          var pixelWidth = wH.map.extent.getWidth() / wH.map.width;
+          var pixelWidth = wR.map.extent.getWidth() / wR.map.width;
           var toleranceInMapCoords = toleranceInPixel * pixelWidth;
           return new Extent(point.x - toleranceInMapCoords,
             point.y - toleranceInMapCoords,
             point.x + toleranceInMapCoords,
             point.y + toleranceInMapCoords,
-            wH.map.spatialReference);
+            wR.map.spatialReference);
         }
 
         //Setup function for selecting communities and parcels
@@ -271,7 +244,7 @@ define(['dojo/_base/declare',
           console.log('selectParcelPiece');
 
           var query = new Query();
-          query.geometry = pointToExtent(wH.map, evt.mapPoint, iPixelSelectionTolerance);
+          query.geometry = pointToExtent(wR.map, evt.mapPoint, iPixelSelectionTolerance);
           query.returnGeometry = false;
           query.outFields = ["*"];
 
@@ -298,7 +271,7 @@ define(['dojo/_base/declare',
                 lyrProject_Selected.setDefinitionExpression('CommCode IN (' + sCurCommunities + ')')
                 lyrProject.setDefinitionExpression('CommCode NOT IN (' + sCurCommunities + ')')
 
-                wH._afterChangeCommunity();
+                wR._afterChangeCommunity();
 
                 // after
                 dojo.place("<div class = \"community\" id=\"comm_" + _communityCode + "\">" + _communityName + "</div>", "communitiesText");
@@ -321,7 +294,7 @@ define(['dojo/_base/declare',
                   //change selection
                   lyrProject_Selected.setDefinitionExpression('CommCode IN (' + sCurCommunities + ')')
                   lyrProject.setDefinitionExpression('CommCode NOT IN (' + sCurCommunities + ')')
-                  wH._afterChangeCommunity();
+                  wR._afterChangeCommunity();
 
                 };
 
@@ -352,11 +325,11 @@ define(['dojo/_base/declare',
                     if (bLocationGraphic) {
                       // should only be one graphic in addition to communities at a time (community borders and selection)
                       // so remove the last
-                      //wH.map.graphics.remove(wH.map.graphics.graphics[wH.map.graphics.graphics.length-1]);
-                      wH.map.graphics.clear();
+                      //wR.map.graphics.remove(wR.map.graphics.graphics[wR.map.graphics.graphics.length-1]);
+                      wR.map.graphics.clear();
                       bLocationGraphic = false;
                     }
-                    wH.map.graphics.add(graphic);
+                    wR.map.graphics.add(graphic);
                     bLocationGraphic = true;
 
                     // Open scoring widget
@@ -370,9 +343,9 @@ define(['dojo/_base/declare',
                     //}
 
                     //Open scoring widget
-                    pm.showPanel(wH.appConfig.widgetPool.widgets[WIDGETPOOLID_SCORE]);
+                    pm.showPanel(wR.appConfig.widgetPool.widgets[WIDGETPOOLID_SCORE]);
 
-                    wH.publishData({
+                    wR.publishData({
                       message: curParcelPieceUNIQID
                     });
                   }
@@ -385,7 +358,7 @@ define(['dojo/_base/declare',
 
       _showLegend: function () {
         var pm = PanelManager.getInstance();
-        pm.showPanel(wH.appConfig.widgetPool.widgets[WIDGETPOOLID_LEGEND]);
+        pm.showPanel(wR.appConfig.widgetPool.widgets[WIDGETPOOLID_LEGEND]);
         //Close Location Scores if open
         var pm = PanelManager.getInstance();
         for (var p = 0; p < pm.panels.length; p++) {
@@ -410,14 +383,14 @@ define(['dojo/_base/declare',
 
         }
 
-        wH._updateOppZoneDisplay();
+        wR._updateOppZoneDisplay();
 
         if (sCurCommunities != "") {
-          wH._zoomToCommunity();
-          wH._checkCommunityNAs();
+          wR._zoomToCommunity();
+          wR._checkCommunityNAs();
         }
-        wH._updateDisplay();
-        wH._turnOnOffLayers();
+        wR._updateDisplay();
+        wR._turnOnOffLayers();
 
         //Close Location Scores if open
         var pm = PanelManager.getInstance();
@@ -563,7 +536,7 @@ define(['dojo/_base/declare',
         });
         lyrParcelPieces.setRenderer(vcUVRenderer);
 
-        //        wH._createChart(_strFilterExpression, _scoreExp);
+        //        wR._createChart(_strFilterExpression, _scoreExp);
 
       },
 
@@ -753,7 +726,7 @@ define(['dojo/_base/declare',
           if (featureSet.features.length > 0) {
             if (featureSet.features[0].geometry.type == "polyline" || featureSet.features[0].geometry.type == "polygon") {
               // clearing any graphics if present. 
-              wH.map.graphics.clear();
+              wR.map.graphics.clear();
               newExtent = new Extent(featureSet.features[0].geometry.getExtent())
               for (i = 0; i < featureSet.features.length; i++) {
                 var graphic = featureSet.features[i];
@@ -767,16 +740,16 @@ define(['dojo/_base/declare',
                 //);
                 //graphic.setSymbol(_sfs); 
                 //graphic.setInfoTemplate(popupTemplate); 
-                //wH.map.graphics.add(graphic); 
+                //wR.map.graphics.add(graphic); 
               }
 
 
               if (dom.byId("chkAutoZoom").checked == true) {
                 //if (dom.byId("chkAutoPan").checked == true) {
                 // zoom to new extent
-                wH.map.setExtent(newExtent.expand(1.5));
+                wR.map.setExtent(newExtent.expand(1.5));
                 // pan to center of TAZ
-                //wH.map.centerAt(newExtent.getCenter()); //recenters the map based on a map coordinate.
+                //wR.map.centerAt(newExtent.getCenter()); //recenters the map based on a map coordinate.
                 //}
               }
             }
@@ -792,7 +765,7 @@ define(['dojo/_base/declare',
             if (bLocationGraphic) {
               // should only be one graphic in addition to communities at a time (community borders and selection)
               // so remove the last
-              wH.map.graphics.remove(wH.map.graphics.graphics[wH.map.graphics.graphics.length - 1]);
+              wR.map.graphics.remove(wR.map.graphics.graphics[wR.map.graphics.graphics.length - 1]);
               bLocationGraphic = false;
             }
           }
@@ -805,64 +778,136 @@ define(['dojo/_base/declare',
           dom.byId('rank' + aCategories[i]).value = "0.0000";
           aCategoryWeights_Saved[i] = "0.0000";
         }
-        wH._updateDisplay();
+        wR._updateDisplay();
       },
 
-      BuildMenu: function(){
-        console.log('BuildMenu');
+      _buildMenu: function() {
+        console.log('_buildMenu');
         
-        var divMenu = dom.byId("menu");
-        
-        dojo.forEach(dijit.findWidgets(divResults), function(w) {
-          w.destroyRecursive();
-        });
-        
-        dojo.empty(divResults);
 
-        var aCategories = ['Urban','Rural'];
-        var aReportTitles = ['Non-State-Route Corridors','Partial-State-Route Corridors','Low-Scoring State-Route Corridors'];
+        // check if data object populated
+        if (typeof dCategories !== "undefined" && typeof dLayers !== "undefined") {
 
-        for (var k = 0; k < 2; k++) {
-          dojo.place("<div class = \"grouptitle\"><p class=\"thicker\">" + aCategories[k] + " " + aReportTitles[j] + "</div>", "resultssection");        
-          dojo.place("<hr>&nbsp;&nbsp;&nbsp;<b>Ref #&nbsp;&nbsp;&nbsp;&nbsp;Corridor Name</b><hr>", "resultssection");
-          for (var l = 0; l < aResultGroup.length; l++) {
-            if (aGroups[j] == aResultGroup[l] && aCategories[k] == aResultCategories[l]) {
-                
-              if (aResultTiers[l] == 1) {
-                sBGColor="#ED2024";
-                sFGColor="#FFFFFF";
-              } else if (aResultTiers[l] == 2) {
-                sBGColor="#37A949";
-                sFGColor="#FFFFFF";
-              } else if (aResultTiers[l] == 3) {
-                sBGColor="#37C2F1";
-                sFGColor="#FFFFFF";
-              } else {
-                sBGColor="#222222";
-                sFGColor="#FFFFFF";
-              }
-              
-              var button3 = new Button({ label:aResultRefLabel[l], id:"button_" + aResultRefLabel[l]});
-              button3.startup();
-              button3.placeAt(divResults);
-              button3.on("click", this.ZoomToCorridor);
-              
-              dojo.style("button_" + aResultRefLabel[l],"width","40px");
-              dojo.style("button_" + aResultRefLabel[l],"height","16px");
-              dojo.style("button_" + aResultRefLabel[l],"background",sBGColor);
-              dojo.style("button_" + aResultRefLabel[l],"color",sFGColor);
-              
-              dojo.place("<div class = \"corridoritem\">&nbsp;&nbsp;" + aResultNames[l] + "</div></br>", "resultssection");
-              
-              //dojo.create("div", { id:, innerHTML: "<p>hi</p>" }, "divResults");
-              
-              //divResults.innerHTML += "</br>";
-              
+          var divMenu = dom.byId("menu");
+          
+          dojo.forEach(dijit.findWidgets(divMenu), function(w) {
+            w.destroyRecursive();
+          });
+          
+          dojo.empty(divMenu);
+
+          for (c in dCategories) {
+
+
+            dojo.place("<br/>", "menu");
+
+            bId = "button" + dCategories[c].CategoryCode;
+
+            var button3 = new Button({ label:'▶', id:bId, style:"display:inline"});
+
+            button3.startup();
+            button3.placeAt(divMenu);
+            button3.on("click", this._expand);
+
+            dojo.style(bId,"width","18px");
+            dojo.style(bId,"height","16px");
+            //dojo.style(bId,"display","inline-block");
+
+            //dojo.style(bId,"background",sBGColor);
+            //dojo.style(bId,"color",sFGColor);
+            
+            // category heading
+            dojo.place("<div class = \"grouptitle\" style=\"display:inline\"><p class=\"thicker\" style=\"display:inline\">" + dCategories[c].CategoryName + "</div><br/>", "menu");
+
+            divCatName = "cat" + dCategories[c].CategoryCode
+
+            var divCat = domConstruct.create("div",{id:divCatName});
+
+            divCat.style.display='none';
+
+            divMenu.appendChild(divCat);
+
+            // layers div
+            dojo.place("<div style=\"display: none;\" id=\"div_" + dCategories[c].CategoryCode +  "\"", divCatName);
+
+            // layers heading
+            dojo.place("<hr>&nbsp;&nbsp;&nbsp;<b>Priority&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Layer Name</b><hr>", divCatName);
+
+            _layers = dLayers.filter(o => o['CategoryCode'] == dCategories[c].CategoryCode);
+
+            for (l in _layers) {
+              dojo.place("<p style=\"display:inline\">&nbsp;&nbsp;</p>", divCatName);
+              new Select({
+                name: "select" + _layers[l].LayerCode,
+                options: [
+                  { label: "High"  , value: "1.0000", selected: true },
+                  { label: "Medium", value: "0.6667"                 },
+                  { label: "Low"   , value: "0.3333"                 },
+                  { label: "Exclue", value: "0.0000"                 }
+                ]
+              }).placeAt(divCatName);
+              dojo.place('<span">&nbsp;' + _layers[l].LayerName + "</span><br/>", divCatName);
             }
           }
-          dojo.place("</br></br></br>", "resultssection");
         }
+
+        //for (var k = 0; k < 2; k++) {
+        //  
+        //  
+        //  for (var l = 0; l < aResultGroup.length; l++) {
+        //    if (aGroups[j] == aResultGroup[l] && aCategories[k] == aResultCategories[l]) {
+        //        
+        //      if (aResultTiers[l] == 1) {
+        //        sBGColor="#ED2024";
+        //        sFGColor="#FFFFFF";
+        //      } else if (aResultTiers[l] == 2) {
+        //        sBGColor="#37A949";
+        //        sFGColor="#FFFFFF";
+        //      } else if (aResultTiers[l] == 3) {
+        //        sBGColor="#37C2F1";
+        //        sFGColor="#FFFFFF";
+        //      } else {
+        //        sBGColor="#222222";
+        //        sFGColor="#FFFFFF";
+        //      }
+        //      
+        //      var button3 = new Button({ label:aResultRefLabel[l], id:"button_" + aResultRefLabel[l]});
+        //      button3.startup();
+        //      button3.placeAt(divResults);
+        //      button3.on("click", this.ZoomToCorridor);
+        //      
+        //      dojo.style("button_" + aResultRefLabel[l],"width","40px");
+        //      dojo.style("button_" + aResultRefLabel[l],"height","16px");
+        //      dojo.style("button_" + aResultRefLabel[l],"background",sBGColor);
+        //      dojo.style("button_" + aResultRefLabel[l],"color",sFGColor);
+        //      
+        //      dojo.place("<div class = \"corridoritem\">&nbsp;&nbsp;" + aResultNames[l] + "</div></br>", "resultssection");
+        //      
+        //      //dojo.create("div", { id:, innerHTML: "<p>hi</p>" }, "divResults");
+        //      
+        //      //divResults.innerHTML += "</br>";
+        //      
+        //    }
+        //  }
+        //  dojo.place("</br></br></br>", "resultssection");
+        //}
       },
+
+      _expand: function() {
+        console.log('_expand');
+
+        var myBut = registry.byId("button" + this.id.slice(-2));
+        var divCat = dom.byId("cat" + this.id.slice(-2));
+
+        if (divCat.style.display=='none') {
+          divCat.style.display='block';
+          myBut.set('label','▼');
+        } else {
+          divCat.style.display='none';
+          myBut.set('label','▶');
+        }
+        
+      }
 
       // onOpen: function(){
       //   console.log('onOpen');

@@ -155,8 +155,6 @@ define(['dojo/_base/declare',
         wR = this;
         this.map.setInfoWindowOnClick(false); // turn off info window (popup) when clicking a feature
 
-        dom.byId('addText').innerHTML = sClickOnMapText;
-
         // Initialize Selection Layer, FromLayer, and ToLayer and define selection colors
         var layerInfosObject = LayerInfos.getInstanceSync();
         for (var j = 0, jl = layerInfosObject._layerInfos.length; j < jl; j++) {
@@ -287,18 +285,12 @@ define(['dojo/_base/declare',
                   }
                   sCurCommunities = "'" + dCurCommunities.join("','") + "'";
 
-                  if (dCurCommunities.length == 0) {
-                    dom.byId('addText').innerHTML = sClickOnMapText;
-                  }
-
                   //change selection
                   lyrProject_Selected.setDefinitionExpression('CommCode IN (' + sCurCommunities + ')')
                   lyrProject.setDefinitionExpression('CommCode NOT IN (' + sCurCommunities + ')')
                   wR._afterChangeCommunity();
 
                 };
-
-                dom.byId('addText').innerHTML = sClickOnMapToAddMoreText;
 
                 // if community is already selected, query the parcel layer and show score
               } else {
@@ -840,10 +832,10 @@ define(['dojo/_base/declare',
               new Select({
                 name: "select" + _layers[l].LayerCode,
                 options: [
-                  { label: "High"  , value: "1.0000", selected: true },
-                  { label: "Medium", value: "0.6667"                 },
-                  { label: "Low"   , value: "0.3333"                 },
-                  { label: "Exclue", value: "0.0000"                 }
+                  { label: "High"   , value: "1.0000", selected: true },
+                  { label: "Medium" , value: "0.6667"                 },
+                  { label: "Low"    , value: "0.3333"                 },
+                  { label: "Exclude", value: "0.0000"                 }
                 ]
               }).placeAt(divCatName);
               dojo.place('<span">&nbsp;' + _layers[l].LayerName + "</span><br/>", divCatName);

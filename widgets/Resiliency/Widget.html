@@ -1,36 +1,11 @@
 <div>
 
   <br />
-  <table width="325px;">
-    <tr>
-      <td width="195px;">
-        <p class="thicker">Step 1: Select Projects</p>
-      </td>
-      <td valign="right">
-        <div id="ATO_Zoom" style="display: flex; justify-content: flex-end"><input type="checkbox" id="chkAutoZoom"
-            name="AutoZoom" data-dojo-type="dijit/form/CheckBox" checked /><label for="chkAutoZoom"><small>&nbsp;Auto
-              Zoom&nbsp;&nbsp;</small></div></label>
-      </td>
-    </tr>
-  </table>
-  <table>
-    <tr>
-      <td width="20px;">
-        &nbsp;
-      </td>
-      <td width="305px;">
-        <div id="communitiesText" class="thicker"></div>
-        <div id="addText"></div>
-      </td>
-    </tr>
-  </table>
-  <hr />
-  <br />
   <div>
     <table width="325px;">
       <tr>
         <td colspan="3">
-          <p class="thicker">Step 2: Customize Factors & Weights</p>
+          <p class="thicker">Step 1: Customize Factors & Weights</p>
         </td>
       </tr>
       <tr>
@@ -66,4 +41,29 @@
     <div id="turnoffall" data-dojo-attach-event="onClick: _turnoffall" class="clickablepointer" style="color:gray;">Set
       all weights to 'Exclude'</div>
   </div>
+  <hr />
+  <br />
+  <table width="325px;">
+    <tr>
+      <td width="195px;">
+        <p class="thicker">Step 2: Select Project</p>
+      </td>
+      <td valign="right">
+        <div id="ATO_Zoom" style="display: flex; justify-content: flex-end"><input type="checkbox" id="chkAutoZoom"
+            name="AutoZoom" data-dojo-type="dijit/form/CheckBox" checked /><label for="chkAutoZoom"><small>&nbsp;Auto
+              Zoom&nbsp;&nbsp;</small></div></label>
+      </td>
+    </tr>
+  </table>
+  <table>
+    <tr>
+      <td width="20px;">
+        &nbsp;
+      </td>
+      <td width="305px;">
+        <div id="projects"></div>
+      </td>
+    </tr>
+  </table>
+
 </div>

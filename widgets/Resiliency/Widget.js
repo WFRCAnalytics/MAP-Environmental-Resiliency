@@ -115,6 +115,7 @@ define(['dojo/_base/declare',
   'dojo/domReady!',
   'esri/layers/FeatureLayer',
   'jimu/LayerInfos/LayerInfos',
+  'dijit/form/ToggleButton',
   'dijit/form/Select',
   'dijit/form/Button',
   'dijit/form/ComboBox',
@@ -129,7 +130,7 @@ define(['dojo/_base/declare',
   'jimu/PanelManager',
   'esri/graphic',
   'dojo/store/Memory'],
-  function (declare, dom, domStyle, domConstruct, on, registry, BaseWidget, CheckBox, html, domReady, FeatureLayer, LayerInfos, Select, Button, ComboBox, Query, QueryTask, Extent, UniqueValueRenderer, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol, Color, PanelManager, Graphic, Memory) {
+  function (declare, dom, domStyle, domConstruct, on, registry, BaseWidget, CheckBox, html, domReady, FeatureLayer, LayerInfos, ToggleButton, Select, Button, ComboBox, Query, QueryTask, Extent, UniqueValueRenderer, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol, Color, PanelManager, Graphic, Memory) {
     //To create a widget, you need to derive from BaseWidget.
     return declare([BaseWidget], {
       // Custom widget code goes here
@@ -820,26 +821,74 @@ define(['dojo/_base/declare',
             divMenu.appendChild(divCat);
 
             // layers div
-            dojo.place("<div style=\"display: none;\" id=\"div_" + dCategories[c].CategoryCode +  "\"", divCatName);
+            dojo.place("<div style=\"display: none;\" id=\"div" + dCategories[c].CategoryCode +  "\"", divCatName);
 
-            // layers heading
-            dojo.place("<hr>&nbsp;&nbsp;&nbsp;<b>Priority&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Layer Name</b><hr>", divCatName);
+            // category weight
+            //dojo.place("<span style=\"display: flex; justify-content: flex-end\">Weight:&nbsp;</span>", divCatName);
+            
+            // weight heading
+            dojo.place("<span>&nbsp;&nbsp;&nbsp&nbsp;&nbsp;&nbsp&nbsp;&nbsp;&nbsp&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Weight:</b></span>", divCatName);
+
+            var selWeight = new Select({
+              name: "weight" + dCategories[c].CategoryCode,
+              options: [
+                { label: "10", value: "10", selected: true },
+                { label: "9" , value: "9"                  },
+                { label: "8" , value: "8"                  },
+                { label: "7" , value: "7"                  },
+                { label: "6" , value: "6"                  },
+                { label: "5" , value: "5"                  },
+                { label: "4" , value: "4"                  },
+                { label: "3" , value: "3"                  },
+                { label: "2" , value: "2"                  },
+                { label: "1" , value: "1"                  },
+                { label: "0" , value: "0"                  }
+              ]
+            }).placeAt(divCatName);
+
 
             _layers = dLayers.filter(o => o['CategoryCode'] == dCategories[c].CategoryCode);
+            _numlayers = _layers.length;
+            // layers heading
+            dojo.place("<hr/>&nbsp;&nbsp;<b>Layer Name</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Max Out #:</b>", divCatName);
+
+
+            var selMaxOut = new Select({
+              name: "nummax" + dCategories[c].CategoryCode
+            }).placeAt(divCatName);
+
+
+            dojo.place("<hr/>", divCatName)
 
             for (l in _layers) {
               dojo.place("<p style=\"display:inline\">&nbsp;&nbsp;</p>", divCatName);
-              new Select({
-                name: "select" + _layers[l].LayerCode,
-                options: [
-                  { label: "High"   , value: "1.0000", selected: true },
-                  { label: "Medium" , value: "0.6667"                 },
-                  { label: "Low"    , value: "0.3333"                 },
-                  { label: "Exclude", value: "0.0000"                 }
-                ]
-              }).placeAt(divCatName);
-              dojo.place('<span">&nbsp;' + _layers[l].LayerName + "</span><br/>", divCatName);
+              
+              var divToggle = domConstruct.create("div",{id:"toggle" + _layers[l].LayerCode});
+  
+              divCat.appendChild(divToggle);
+              
+              var myToggleButton = new ToggleButton({
+                checked: true,
+                iconClass: "dijitCheckBoxIcon",
+                label: _layers[l].LayerName
+              }, divToggle);
+              dojo.place("<br/>", divCatName);
+
+              selMaxOut.addOption({ value: String(_numlayers - l), label: String(_numlayers - l) }); // add all options at once as an array
+
+              //new Select({
+              //  name: "select" + _layers[l].LayerCode,
+              //  options: [
+              //    { label: "High"   , value: "1.0000", selected: true },
+              //    { label: "Medium" , value: "0.6667"                 },
+              //    { label: "Low"    , value: "0.3333"                 },
+              //    { label: "Exclude", value: "0.0000"                 }
+              //  ]
+              //}).placeAt(divCatName);
+              //dojo.place('<span">&nbsp;' + _layers[l].LayerName + "</span><br/>", divCatName);
             }
+            selMaxOut.set("value",Math.min(4,_numlayers))
+            selMaxOut.startup();
           }
         }
 

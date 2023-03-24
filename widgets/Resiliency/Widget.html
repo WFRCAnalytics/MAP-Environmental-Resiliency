@@ -1,20 +1,29 @@
 <div>
-
-  <br />
   <div>
     <table width="325px;">
       <tr bgcolor="#FFDDAA">
         <td colspan="3">
-          <p class="thicker">Load Preset Settings:</p>
-        </td>
-      </tr>
-      <tr bgcolor="#FFDDAA">
-        <td></td>
-        <td colspan="2" width="300px;">
+          <span><b>&nbsp;Load Preset Settings:</b></span>
           <select>
             <option>Default</option>
-            <option>Preset 1</option>
-            <option>Preset 2</option>
+          </select>
+          <div id="sw" data-dojo-type="dojox/mobile/Switch" value="off"></div>
+        </td>
+      </tr>
+    </table>
+    <br />
+    <table>
+      <tr>
+        <td colspan="3">
+          <p class="thicker">Step 1: Filter Projects</p>
+        </td>
+      </tr>
+      <tr>
+        <td></td>
+        <td>
+          <span><b>Projects:</b></span>
+          <select>
+            <option>All</option>
           </select>
         </td>
       </tr>
@@ -23,13 +32,13 @@
     <table>
       <tr>
         <td colspan="3">
-          <p class="thicker">Step 1: Filter Projects and Set Buffer</p>
+          <p class="thicker">Step 2: Set Buffer</p>
         </td>
       </tr>
       <tr>
         <td></td>
         <td colspan="2" width="300px;">
-
+          <span><b>Buffer (feet): </b></span><input data-dojo-type="dijit/form/TextBox" id="buffer" value="500"/>
         </td>
       </tr>
     </table>
@@ -37,7 +46,7 @@
     <table width="325px;">
       <tr>
         <td colspan="3">
-          <p class="thicker">Step 2: Customize Factors & Weights</p>
+          <p class="thicker">Step 3: Customize Factors & Weights</p>
         </td>
       </tr>
       <tr>

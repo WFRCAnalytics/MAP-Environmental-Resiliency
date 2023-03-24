@@ -652,52 +652,6 @@ define(['dojo/_base/declare',
         //}
       },
 
-      _expandCenters: function () {
-        console.log('_expandCenters');
-        if (dom.byId("divCentersExpand").innerHTML == 'collapse') {
-          dom.byId("centerschoices").style.display = 'none';
-          dom.byId("divCentersExpand").innerHTML = 'expand';
-        } else {
-          dom.byId("centerschoices").style.display = 'block';
-          dom.byId("divCentersExpand").innerHTML = 'collapse';
-        }
-      },
-
-
-
-      _expandATO: function () {
-        console.log('_expandATO');
-        if (dom.byId("divATOExpand").innerHTML == 'collapse') {
-          dom.byId("atochoices").style.display = 'none';
-          dom.byId("divATOExpand").innerHTML = 'expand';
-        } else {
-          dom.byId("atochoices").style.display = 'block';
-          dom.byId("divATOExpand").innerHTML = 'collapse';
-        }
-      },
-
-      _expandTransportation: function () {
-        console.log('_expandTransportation');
-        if (dom.byId("divTransportationExpand").innerHTML == 'collapse') {
-          dom.byId("transportationchoices").style.display = 'none';
-          dom.byId("divTransportationExpand").innerHTML = 'expand';
-        } else {
-          dom.byId("transportationchoices").style.display = 'block';
-          dom.byId("divTransportationExpand").innerHTML = 'collapse';
-        }
-      },
-
-      _expandAmenities: function () {
-        console.log('_expandAmenities');
-        if (dom.byId("divAmenitiesExpand").innerHTML == 'collapse') {
-          dom.byId("amenitieschoices").style.display = 'none';
-          dom.byId("divAmenitiesExpand").innerHTML = 'expand';
-        } else {
-          dom.byId("amenitieschoices").style.display = 'block';
-          dom.byId("divAmenitiesExpand").innerHTML = 'collapse';
-        }
-      },
-
       _zoomToCommunity: function () {
         console.log('_zoomToCommunity');
 
@@ -827,7 +781,12 @@ define(['dojo/_base/declare',
             //dojo.place("<span style=\"display: flex; justify-content: flex-end\">Weight:&nbsp;</span>", divCatName);
             
             // weight heading
-            dojo.place("<span>&nbsp;&nbsp;&nbsp&nbsp;&nbsp;&nbsp&nbsp;&nbsp;&nbsp&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Weight:</b></span>", divCatName);
+            dojo.place("<span>&nbsp;&nbsp;&nbsp&nbsp;&nbsp;&nbsp&nbsp;&nbsp;&nbsp&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<small>Weight</small>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<small>Max Out #</small></span>", divCatName);
+            dojo.place("<br/>", divCatName);
+
+
+            dojo.place("<span>&nbsp;&nbsp;<b>Layer</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>", divCatName);
+
 
             var selWeight = new Select({
               name: "weight" + dCategories[c].CategoryCode,
@@ -850,29 +809,51 @@ define(['dojo/_base/declare',
             _layers = dLayers.filter(o => o['CategoryCode'] == dCategories[c].CategoryCode);
             _numlayers = _layers.length;
             // layers heading
-            dojo.place("<hr/>&nbsp;&nbsp;<b>Layer Name</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Max Out #:</b>", divCatName);
 
+            //dojo.place("<hr/>, divCatName);
 
             var selMaxOut = new Select({
               name: "nummax" + dCategories[c].CategoryCode
             }).placeAt(divCatName);
 
 
-            dojo.place("<hr/>", divCatName)
+            //dojo.place("<hr/>", divCatName)
 
             for (l in _layers) {
-              dojo.place("<p style=\"display:inline\">&nbsp;&nbsp;</p>", divCatName);
+              //dojo.place("<p style=\"display:inline\">&nbsp;&nbsp;</p>", divCatName);
               
               var divToggle = domConstruct.create("div",{id:"toggle" + _layers[l].LayerCode});
   
               divCat.appendChild(divToggle);
-              
-              var myToggleButton = new ToggleButton({
-                checked: true,
-                iconClass: "dijitCheckBoxIcon",
-                label: _layers[l].LayerName
-              }, divToggle);
-              dojo.place("<br/>", divCatName);
+
+              var _checkbox = "<span>&nbsp;&nbsp;&nbsp;&nbsp;<input type=\"checkbox\" id=\"chk" + _layers[l].LayerCode + "\" checked data-dojo-type=\"dijit/form/CheckBox\"> <label for=\"chk" + _layers[l].LayerCode + "\">" + _layers[l].LayerName + "</label></span><br/>";
+
+              dojo.place(_checkbox, divToggle);
+
+//              var checkbox = new CheckBox({
+//                name: "checkbox" + _layers[l].LayerCode,
+//                label: _layers[l].LayerName,
+//                value: "yes",
+//                checked: true,
+//                onChange: function(newValue){
+//                  console.log("Checkbox value: ", newValue);
+//                }
+//              });
+//
+//              domConstruct.place(checkbox.domNode, divToggle);
+//              checkbox.set("label", "SomeName");
+//              
+//              var myToggleButton = new ToggleButton({
+//                checked: true,
+//                iconClass: "dijitCheckBoxIcon",
+//                label: _layers[l].LayerName
+//              }, divToggle);
+//              dojo.place("<br/>", divCatName);
+//
+//              myToggleButton.domNode.style.color = "green"; // Change the background color to red
+//              myToggleButton.domNode.style.border = "0px solid green";
+//              //myToggleButton.domNode.style.fontSize = "12px";
+//              myToggleButton.domNode.style.borderRadius = "0px";
 
               selMaxOut.addOption({ value: String(_numlayers - l), label: String(_numlayers - l) }); // add all options at once as an array
 

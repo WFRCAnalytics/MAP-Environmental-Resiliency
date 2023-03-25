@@ -76,8 +76,7 @@
         },
         "version": "2.20",
         "id": "widgets_Coordinate_Widget_24",
-        "name": "Coordinate",
-        "config": "configs/Coordinate/config_widgets_Coordinate_Widget_24.json"
+        "name": "Coordinate"
       },
       {
         "position": {
@@ -165,7 +164,6 @@
         },
         "id": "widgets_AttributeTable_Widget_31",
         "name": "AttributeTable",
-        "config": "configs/AttributeTable/config_widgets_AttributeTable_Widget_31.json",
         "visible": false
       },
       {
@@ -260,16 +258,15 @@
       "right": 0,
       "bottom": 0
     },
-    "itemId": "483d76ef870e4e02b798c4c8bd53be78",
+    "itemId": "85c641f4dadd4052912a121664ff231a",
     "mapOptions": {
       "extent": {
-        "xmin": -12519010.423798019,
-        "ymin": 4908008.807505573,
-        "xmax": -12341676.518176494,
-        "ymax": 5040703.488608575,
+        "xmin": -12529014.425768968,
+        "ymin": 4926765.856490533,
+        "xmax": -12360547.2154283,
+        "ymax": 5055944.434292589,
         "spatialReference": {
-          "wkid": 102100,
-          "latestWkid": 3857
+          "wkid": 102100
         }
       }
     },
@@ -302,7 +299,6 @@
         "name": "LayerList",
         "version": "2.20",
         "uri": "widgets/LayerList/Widget",
-        "config": "configs/LayerList/config_widgets_LayerList_Widget_38.json",
         "index": 3,
         "id": "widgets_LayerList_Widget_38"
       },

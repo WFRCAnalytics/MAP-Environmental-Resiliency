@@ -1,105 +1,18 @@
-jsonCategories = 'widgets/Resiliency/data/categories.json'
-jsonLayers     = 'widgets/Resiliency/data/opendatalayers.json'
-
-var dCounties = [  // COUNTYNBR
-  { label: "Weber    ", value: "29" },
-  { label: "Davis    ", value: "06" },
-  { label: "Salt Lake", value: "18" },
-  { label: "Utah     ", value: "25" }
-];
-
-var sClickOnMapText = "<FONT COLOR=\"red\"><i>Click on one or more cities to start</i></FONT>";
-var sClickOnMapToAddMoreText = "<br/><i>To remove city, click on name in list. To add another city, click on it in map.</i>";
-var sSelectOptionAboveText = "<i>Select option above.</i>";
-
-var aCommunityNames = [];
-
-var dCommunities = [];
-
-var sDistrictRGB = "rgba(102,102,229,0.6)"; //Blue color for to districts. Last value perhaps opacity?
-
-var sClickConfirmation = "Use mouse to select district(s) on map. Do not click on district label. Click button when done.";
-
-var dLandUseFilter = [
-  { label: "All Land Uses", value: "'AG','EM','OS','CH','SF','MF','GQ','GO','ED','HE','RE','OF','IN','OT','UT','NB','NO'" },
-  { label: "Single-Family Residential", value: "'CH','SF'" },
-  //  { label: "All Other Land Uses"      , value: "'MF','GQ','GO','ED','HE','RE','OF','IN'"                                             }
-  { label: "All Other Land Uses", value: "'AG','EM','OS','MF','GQ','GO','ED','HE','RE','OF','IN','OT','UT','NB','NO'" }
-];
-
-var aCategories = ['CM', 'CU', 'CC', 'CN', 'AA', 'AT', 'TT', 'TF', 'TA', 'AC', 'AH', 'AE', 'AG', 'AM', 'AP'];
-var aCategories_Names = ['Metropolitan Centers', 'Urban Centers', 'City Centers', 'Neighborhood Centers', 'Auto Access to Jobs', 'Transit Access to Jobs', 'Transit', 'Freeway Access', 'Active Transportation Facilities', 'Child Care', 'Health Care', 'Schools', 'Grocery', 'Community Centers', '10-Minute Walk to Parks'];
-var aCategories_Groups = ['places', 'places', 'places', 'places', 'access', 'access', 'transp', 'transp', 'transp', 'necess', 'necess', 'necess', 'necess', 'necess', 'necess'];
-
-var dDisplayDict = [
-  ['CM', 'Metropolitan Centers', 'KeepScoresOn'],
-  ['CU', 'Urban Centers', 'KeepScoresOn'],
-  ['CC', 'City Centers', 'KeepScoresOn'],
-  ['CN', 'Neighborhood Centers', 'KeepScoresOn'],
-  ['AA', 'Accessible Jobs - Auto', 'KeepScoresOn'],
-  ['AT', 'Accessible Jobs - Transit', 'KeepScoresOn'],
-  ['TT', 'Local Bus Stops', 'KeepScoresOn'],
-  ['TT', 'CRT Stops', 'KeepScoresOn'],
-  ['TT', 'CRT Stops - Future', 'KeepScoresOn'],
-  ['TT', 'LRT Stops', 'KeepScoresOn'],
-  ['TT', 'LRT Stops - Future', 'KeepScoresOn'],
-  ['TT', 'BRT Stops', 'KeepScoresOn'],
-  ['TT', 'BRT Stops - Future', 'KeepScoresOn'],
-  ['TF', 'Interchanges', 'KeepScoresOn'],
-  ['TF', 'Interchanges - Future', 'KeepScoresOn'],
-  ['TA', 'Active Transportation Paths', 'KeepScoresOn'],
-  ['TA', 'Active Transportation Paths - Future', 'KeepScoresOn'],
-  ['TA', 'Active Transportation Protected Bike Lanes', 'KeepScoresOn'],
-  ['TA', 'Active Transportation Protected Bike Lanes - Future', 'KeepScoresOn'],
-  ['AC', 'Child Care', 'KeepScoresOn'],
-  ['AH', 'Health Care', 'KeepScoresOn'],
-  ['AG', 'Grocery Stores', 'KeepScoresOn'],
-  ['AE', 'K-12 Public Schools', 'KeepScoresOn'],
-  ['AE', 'Higher Education', 'KeepScoresOn'],
-  ['AM', 'Community Centers', 'KeepScoresOn'],
-  ['AP', '10-Minute Walk to Parks', 'KeepScoresOn']
-]
-
-var aCategoryWeights = [];
-
-// need some kind of container to save weights so that toggling between communities with or without the category, the value is saved somewhere....
-// use aCategories as index array
-var aCategoryWeights_Saved = ['1.0000', '1.0000', '1.0000', '1.0000', '1.0000', '1.0000', '1.0000', '1.0000', '1.0000', '1.0000', '1.0000', '1.0000', '1.0000', '1.0000', '1.0000'];
+jsonCats = 'widgets/Resiliency/data/cats.json'
+jsonLyrs = 'widgets/Resiliency/data/lyrs.json'
+jsonDist = 'widgets/Resiliency/data/dist/WETL.json'
+jsonSeqs = 'widgets/Resiliency/data/seqs.json'
+jsonGIds = 'widgets/Resiliency/data/gids.json'
 
 var sCurCommunities = "";
 var dCurCommunities = [];
-var lyrProject;
-var lyrProject_Selected;
-var sCommunityLayer = 'Communities';
-var sCommunityLayer_Selected = 'Communities-Selected';
-
-var lyrParcelPieces;
-var sParcelPiecesLayer = 'Housing ATO';
-
-var curLandUseFilter = "'AG','EM','OS','CH','SF','MF','GQ','GO','ED','HE','RE','OF','IN','OT','UT','NB','NO'"
-
-// which cities have utah qualified opportunity zones
-var UtahQualOppZoneCities = "'OG','SO'"
-
-var wR;
-var maxScore_Places = 0.0;
-var maxScore_Access = 0.0;
-var maxScore_Transp = 0.0;
-var maxScore_Necess = 0.0;
-var maxPossible = 0.0;
-var iPixelSelectionTolerance = 5;
-var curParcelPieceUNIQID = 0;
+var lyrRTPResiliencySegs;
+var lyrRTPResiliencySegs_Selected;
+var sRTPResiliencySegs = 'RTP Resiliency Segments';
+var sRTPResiliencySegs_Selected = 'RTP Resiliency Projects Selected';
 
 var WIDGETPOOLID_LEGEND = 0;
 var WIDGETPOOLID_SCORE = 2;
-
-var bLocationGraphic = false;
-
-var curCommSelMode = 'single';
-
-var cmbCommunities_Single;
-var cmbCommunities_Multi;
-var cmbCounty;
 
 var strSelectedPriorities = '';
 
@@ -160,32 +73,26 @@ define(['dojo/_base/declare',
         var layerInfosObject = LayerInfos.getInstanceSync();
         for (var j = 0, jl = layerInfosObject._layerInfos.length; j < jl; j++) {
           var currentLayerInfo = layerInfosObject._layerInfos[j];
-          if (currentLayerInfo.title == sCommunityLayer) {
-            lyrProject = layerInfosObject._layerInfos[j].layerObject;
-            console.log(sCommunityLayer + ' Found');
-          } else if (currentLayerInfo.title == sCommunityLayer_Selected) {
-            lyrProject_Selected = layerInfosObject._layerInfos[j].layerObject;
-            lyrProject_Selected.setDefinitionExpression("CommCode IN ('NONE')");
-            lyrProject_Selected.show();
-            console.log(sCommunityLayer_Selected + ' Found');
-          } else if (currentLayerInfo.title == sParcelPiecesLayer) {
-            lyrParcelPieces = layerInfosObject._layerInfos[j].layerObject;
-            lyrParcelPieces.setDefinitionExpression("CommCode IN ('NONE')");
-            lyrParcelPieces.show();
-            console.log('Parcel Pieces Layer Found')
+          if (currentLayerInfo.title == sRTPResiliencySegs) {
+            lyrRTPResiliencySegs = layerInfosObject._layerInfos[j].layerObject;
+            console.log(sRTPResiliencySegs + ' Found');
+          } else if (currentLayerInfo.title == sRTPResiliencySegs_Selected) {
+            lyrRTPResiliencySegs_Selected = layerInfosObject._layerInfos[j].layerObject;
+            lyrRTPResiliencySegs_Selected.setDefinitionExpression("CommCode IN ('NONE')");
+            lyrRTPResiliencySegs_Selected.show();
+            console.log(sRTPResiliencySegs_Selected + ' Found');
           }
         }
 
-
-        // Populate categories object
+        // Populate gisids object
         dojo.xhrGet({
-          url: jsonCategories,
+          url: jsonGIds,
           handleAs: "json",
           load: function (obj) {
             /* here, obj will already be a JS object deserialized from the JSON response */
-            console.log(jsonCategories);
-            dCategories = obj.data;
-            wR._buildMenu();
+            console.log(jsonGIds);
+            dGIds = obj.data;
+            wR._calculateScores();
           },
           error: function (err) {
             /* this will execute if the response couldn't be converted to a JS object,
@@ -195,13 +102,13 @@ define(['dojo/_base/declare',
 
         // Populate categories object
         dojo.xhrGet({
-          url: jsonLayers,
+          url: jsonSeqs,
           handleAs: "json",
           load: function (obj) {
             /* here, obj will already be a JS object deserialized from the JSON response */
-            console.log(jsonLayers);
-            dLayers = obj.data;
-            wR._buildMenu();
+            console.log(jsonSeqs);
+            dSeqs = obj.data;
+            wR._calculateScores();
           },
           error: function (err) {
             /* this will execute if the response couldn't be converted to a JS object,
@@ -209,20 +116,56 @@ define(['dojo/_base/declare',
           }
         });
 
-        //// Populate projects
-        //dojo.xhrGet({
-        //  url: jsonProjects,
-        //  handleAs: "json",
-        //  load: function (obj) {
-        //    /* here, obj will already be a JS object deserialized from the JSON response */
-        //    console.log(jsonProjects);
-        //    dProjects = obj;
-        //  },
-        //  error: function (err) {
-        //    /* this will execute if the response couldn't be converted to a JS object,
-        //       or if the request was unsuccessful altogether. */
-        //  }
-        //});
+        // Populate categories object
+        dojo.xhrGet({
+          url: jsonCats,
+          handleAs: "json",
+          load: function (obj) {
+            /* here, obj will already be a JS object deserialized from the JSON response */
+            console.log(jsonCats);
+            dCats = obj.data;
+            wR._buildMenu();
+            wR._calculateScores();
+          },
+          error: function (err) {
+            /* this will execute if the response couldn't be converted to a JS object,
+               or if the request was unsuccessful altogether. */
+          }
+        });
+
+        // Populate layers object
+        dojo.xhrGet({
+          url: jsonLyrs,
+          handleAs: "json",
+          load: function (obj) {
+            /* here, obj will already be a JS object deserialized from the JSON response */
+            console.log(jsonLyrs);
+            dLyrs = obj.data;
+            wR._buildMenu();
+            wR._calculateScores();
+          },
+          error: function (err) {
+            /* this will execute if the response couldn't be converted to a JS object,
+               or if the request was unsuccessful altogether. */
+          }
+        });
+
+        // Populate distances object
+        dojo.xhrGet({
+          url: jsonDist,
+          handleAs: "json",
+          load: function (obj) {
+            /* here, obj will already be a JS object deserialized from the JSON response */
+            console.log(jsonDist);
+            dDist = obj;
+            console.log(dDist['4_108']);
+            wR._calculateScores();
+          },
+          error: function (err) {
+            /* this will execute if the response couldn't be converted to a JS object,
+               or if the request was unsuccessful altogether. */
+          }
+        });
 
         //setup click functionality
         this.map.on('click', selectParcelPiece);
@@ -247,7 +190,7 @@ define(['dojo/_base/declare',
           query.returnGeometry = false;
           query.outFields = ["*"];
 
-          var queryCommunity = new QueryTask(lyrProject.url);
+          var queryCommunity = new QueryTask(lyrRTPResiliencySegs.url);
           queryCommunity.execute(query, clickCommunity);
 
           //Segment search results
@@ -257,93 +200,6 @@ define(['dojo/_base/declare',
             var resultCount = results.features.length;
             if (resultCount > 0) {
               var _communityCode = results.features[0].attributes['CommCode'];
-
-              // if community is not already selected, add it to the list
-              if (dCurCommunities.indexOf(_communityCode) == -1) {
-                var _communitiesText = dom.byId('communitiesText');
-
-                var _communityName = dCommunities.find(item => item.value == _communityCode).label;
-                dCurCommunities.push(_communityCode);
-                sCurCommunities = "'" + dCurCommunities.join("','") + "'";
-
-                //change selection
-                lyrProject_Selected.setDefinitionExpression('CommCode IN (' + sCurCommunities + ')')
-                lyrProject.setDefinitionExpression('CommCode NOT IN (' + sCurCommunities + ')')
-
-                wR._afterChangeCommunity();
-
-                // after
-                dojo.place("<div class = \"community\" id=\"comm_" + _communityCode + "\">" + _communityName + "</div>", "communitiesText");
-
-                dom.byId("comm_" + _communityCode).onclick = function (evt) {
-                  console.log('Remove ' + _communityCode);
-
-                  dojo.destroy("comm_" + _communityCode);
-
-                  const index = dCurCommunities.indexOf(_communityCode);
-                  if (index > -1) { // only splice array when item is found
-                    dCurCommunities.splice(index, 1); // 2nd parameter means remove one item only
-                  }
-                  sCurCommunities = "'" + dCurCommunities.join("','") + "'";
-
-                  //change selection
-                  lyrProject_Selected.setDefinitionExpression('CommCode IN (' + sCurCommunities + ')')
-                  lyrProject.setDefinitionExpression('CommCode NOT IN (' + sCurCommunities + ')')
-                  wR._afterChangeCommunity();
-
-                };
-
-                // if community is already selected, query the parcel layer and show score
-              } else {
-                var queryParcelPiece = new QueryTask(lyrParcelPieces.url);
-                queryParcelPiece.execute(query, clickParcelPiece);
-
-                //Segment search results
-                function clickParcelPiece(results) {
-                  console.log('clickParcelPiece');
-
-                  var resultCount = results.features.length;
-                  if (resultCount > 0) {
-                    //use first feature only
-                    var featureAttributes = results.features[0].attributes;
-                    curParcelPieceUNIQID = featureAttributes['OBJECTID'];
-
-                    var symbol = new SimpleMarkerSymbol().setSize(15).setColor(new Color("#6b39fd"));
-
-                    var graphic = new Graphic(evt.mapPoint);
-
-                    graphic.setSymbol(symbol);
-                    //graphic.geometry = evt.mapPoint;
-                    //graphic.setInfoTemplate(popupTemplate);
-                    if (bLocationGraphic) {
-                      // should only be one graphic in addition to communities at a time (community borders and selection)
-                      // so remove the last
-                      //wR.map.graphics.remove(wR.map.graphics.graphics[wR.map.graphics.graphics.length-1]);
-                      wR.map.graphics.clear();
-                      bLocationGraphic = false;
-                    }
-                    wR.map.graphics.add(graphic);
-                    bLocationGraphic = true;
-
-                    // Open scoring widget
-                    var pm = PanelManager.getInstance();
-
-                    //Close Segment Widget if open
-                    //for (var p=0; p < pm.panels.length; p++) {
-                    //    if (pm.panels[p].label == sSegWidgetLabel) {
-                    //        pm.closePanel(pm.panels[p]);
-                    //      }
-                    //}
-
-                    //Open scoring widget
-                    pm.showPanel(wR.appConfig.widgetPool.widgets[WIDGETPOOLID_SCORE]);
-
-                    wR.publishData({
-                      message: curParcelPieceUNIQID
-                    });
-                  }
-                }
-              }
             }
           }
         }
@@ -361,63 +217,36 @@ define(['dojo/_base/declare',
         }
       },
 
-      _afterChangeCommunity: function () {
-        console.log('_afterChangeCommunity');
-        // after sCurCommunities updated
-        if (sCurCommunities == "''" || sCurCommunities == "'__'") {
+      _calculateScores: function() {
+        console.log('_calculateScores');
 
-          //Close Location Scores if open
-          var pm = PanelManager.getInstance();
-          for (var p = 0; p < pm.panels.length; p++) {
-            if (pm.panels[p].label == 'Legend') {
-              pm.closePanel(pm.panels[p]);
+        if (typeof dGIds !== "undefined"  && typeof dSeqs !== "undefined" && typeof dCats !== "undefined" && typeof dLyrs !== "undefined" && typeof dDist !== "undefined") {
+
+          // loop through all gis_ids
+          for (i in dGIds) {
+            var _seqs = dSeqs.filter(o => o['i'] == dGIds[i].i);
+            // loop through all sequences
+            // search for seqs for GIds
+            for (s in _seqs) {
+              for (c in dCats) {
+                var _lyrs = dLyrs.filter(o => o['CategoryCode'] == dCats[c].CategoryCode);
+                for (l in _lyrs) {
+                  var _index = dGIds[i].i + '_' + _seqs[s].s + '_' + _lyrs[l].LayerCode;
+                  var _distrec = dDist[_index];
+                  if (typeof _distrec !== "undefined") {
+                    var _dist = _distrec.d;
+                    console.log(_index)
+                    console.log(_dist)
+                  }
+                }
+              }
             }
-          }
+            // loop through all categories
 
-        }
+            // loop through all layercodes
 
-        wR._updateOppZoneDisplay();
-
-        if (sCurCommunities != "") {
-          wR._zoomToCommunity();
-          wR._checkCommunityNAs();
-        }
-        wR._updateDisplay();
-        wR._turnOnOffLayers();
-
-        //Close Location Scores if open
-        var pm = PanelManager.getInstance();
-        for (var p = 0; p < pm.panels.length; p++) {
-          if (pm.panels[p].label == 'Location Score') {
-            pm.closePanel(pm.panels[p]);
           }
         }
-      },
-
-      _checkCommunityNAs: function () {
-        // check what centers are in a community and update user interface as appropriate
-        for (i = 0; i < aCategories.length; i++) {
-
-          // initialize as hidden
-          dom.byId('row' + aCategories[i]).style.display = 'none';
-          dom.byId('none' + aCategories[i]).style.display = 'table-row';
-          dom.byId('rank' + aCategories[i]).value = '0.0000';
-          dom.byId('chk' + aCategories[i]).checked = false;
-
-          // check if communities have categories
-          for (j = 0; j < dCurCommunities.length; j++) {
-            _catsincommunity = dCommunities.find(item => item.value == dCurCommunities[j]).categories
-            if (_catsincommunity.includes(aCategories[i])) {
-              dom.byId('row' + aCategories[i]).style.display = 'table-row';
-              dom.byId('none' + aCategories[i]).style.display = 'none';
-              //use saved value, which is last manually selected by user
-              dom.byId('rank' + aCategories[i]).value = aCategoryWeights_Saved[i];
-              // break out if one community has score available
-              break;
-            }
-          }
-        }
-
       },
 
       _updateDisplay: function () {
@@ -529,179 +358,6 @@ define(['dojo/_base/declare',
         });
         lyrParcelPieces.setRenderer(vcUVRenderer);
 
-        //        wR._createChart(_strFilterExpression, _scoreExp);
-
-      },
-
-      //    _createChart: function(_strFilterExpression, _scoreExp) {
-      //        console.log('_createChart');
-      //
-      //        var query = new Query();  
-      //        query.returnGeometry = false;
-      //        query.outFields = ["*"];
-      //        query.where = _strFilterExpression;
-      //
-      //        var queryParcelPiece = new QueryTask(lyrParcelPieces.url);
-      //        queryParcelPiece.execute(query,getAreasByClass);
-      //        
-      //        //Segment search results
-      //        function getAreasByClass(results) {
-      //            console.log('getAreasByClass');
-      //        
-      //            _area_class5 = 0;
-      //            _area_class4 = 0;
-      //            _area_class3 = 0;
-      //            _area_class2 = 0;
-      //            _area_class1 = 0;
-      //
-      //            var resultCount = results.features.length;
-      //            if (resultCount>0) {
-      //                //use first feature only
-      //                for (i=0;i<resultCount;i++) {
-      //                    var featureAttributes = results.features[0].attributes;
-      //    
-      //                    _score = (featureAttributes[aCategories[00]] * aCategoryWeights[00]) + 
-      //                             (featureAttributes[aCategories[01]] * aCategoryWeights[01]) + 
-      //                             (featureAttributes[aCategories[02]] * aCategoryWeights[02]) + 
-      //                             (featureAttributes[aCategories[03]] * aCategoryWeights[03]) + 
-      //                             (featureAttributes[aCategories[04]] * aCategoryWeights[04]) + 
-      //                             (featureAttributes[aCategories[05]] * aCategoryWeights[05]) + 
-      //                             (featureAttributes[aCategories[06]] * aCategoryWeights[06]) + 
-      //                             (featureAttributes[aCategories[07]] * aCategoryWeights[07]) + 
-      //                             (featureAttributes[aCategories[08]] * aCategoryWeights[08]) + 
-      //                             (featureAttributes[aCategories[09]] * aCategoryWeights[09]) + 
-      //                             (featureAttributes[aCategories[10]] * aCategoryWeights[10]) + 
-      //                             (featureAttributes[aCategories[11]] * aCategoryWeights[11]) + 
-      //                             (featureAttributes[aCategories[12]] * aCategoryWeights[12]) + 
-      //                             (featureAttributes[aCategories[13]] * aCategoryWeights[13]) + 
-      //                             (featureAttributes[aCategories[14]] * aCategoryWeights[14]) ;
-      //    
-      //                    if        (_score>maxPossible*0.80) {
-      //                        _area_class5 += featureAttributes['Shape__Area'];
-      //                    } else if (_score>maxPossible*0.60) {
-      //                        _area_class4 += featureAttributes['Shape__Area'];
-      //                    } else if (_score>maxPossible*0.40) {
-      //                        _area_class3 += featureAttributes['Shape__Area'];
-      //                    } else if (_score>maxPossible*0.20) {
-      //                        _area_class2 += featureAttributes['Shape__Area'];
-      //                    } else                               {
-      //                        _area_class1 += featureAttributes['Shape__Area'];
-      //                    }
-      //                }
-      //            }
-      //            console.log('class5area: ' + String(_area_class5));
-      //            console.log('class4area: ' + String(_area_class4));
-      //            console.log('class3area: ' + String(_area_class3));
-      //            console.log('class2area: ' + String(_area_class2));
-      //            console.log('class1area: ' + String(_area_class1));
-      //        }
-      //    },
-
-      _updateOppZoneDisplay: function () {
-        console.log('_updateOppZoneDisplay');
-        for (i = 0; i < dCurCommunities.length; i++) {
-          if (dCommunities.find(item => item.value == dCurCommunities[i]).oppzones == 'yes') {
-            dom.byId("oppzones").style.display = 'block';
-            break;
-          } else {
-            dom.byId("oppzones").style.display = 'none';
-          }
-
-        }
-      },
-
-      _turnOnOffLayers: function () {
-        console.log('_turnOnOffLayers')
-        // turn on/off data layers
-
-        var _bTurnScoresOff = false;
-
-        // loop through all layers in map
-        var layerInfosObject = LayerInfos.getInstanceSync();
-        for (var j = 0, jl = layerInfosObject._layerInfos.length; j < jl; j++) {
-          var _curLayerInfo = layerInfosObject._layerInfos[j];
-          var _curLayerTitle = _curLayerInfo.title;
-
-          // loop through display dictionary and check against layer name
-          for (var k = 0; k < dDisplayDict.length; k++) {
-
-            // if dictionary item equals current category
-            if (dDisplayDict[k][1] == _curLayerTitle) {
-
-              // check if item checked
-              if (dom.byId('chk' + dDisplayDict[k][0]).checked == true) {
-                _curLayerInfo.layerObject.show()
-                if (dDisplayDict[k][2] == 'TurnScoresOff') {
-                  _bTurnScoresOff = true;
-                }
-              } else {
-                _curLayerInfo.layerObject.hide()
-              }
-            }
-          }
-        }
-        //if (_bTurnScoresOff==true) {
-        //    lyrParcelPieces.hide();
-        //} else {
-        //    lyrParcelPieces.show();
-        //}
-        //if (sCurCommunities=="''" || sCurCommunities=="'__'") {
-        //    lyrProject.show();
-        //} else {
-        //    lyrProject.hide();
-        //}
-      },
-
-      _zoomToCommunity: function () {
-        console.log('_zoomToCommunity');
-
-        queryTask = new esri.tasks.QueryTask(lyrProject.url);
-
-        query = new esri.tasks.Query();
-        query.returnGeometry = true;
-        query.outFields = ["*"];
-        //query.where = "CommCode IN (" + sCurCommunities + ") AND COUNTYNBR='" + curCountyNumber + "'"; // ONLY SETUP FOR WASATCH FRONT AREA
-        query.where = "CommCode IN (" + sCurCommunities + ")"; // ONLY SETUP FOR WASATCH FRONT AREA
-
-        queryTask.execute(query, showResults);
-
-        function showResults(featureSet) {
-
-          var feature, featureId;
-
-          // QueryTask returns a featureSet.  Loop through features in the featureSet and add them to the map.
-          if (featureSet.features.length > 0) {
-            if (featureSet.features[0].geometry.type == "polyline" || featureSet.features[0].geometry.type == "polygon") {
-              // clearing any graphics if present. 
-              wR.map.graphics.clear();
-              newExtent = new Extent(featureSet.features[0].geometry.getExtent())
-              for (i = 0; i < featureSet.features.length; i++) {
-                var graphic = featureSet.features[i];
-                var thisExtent = graphic.geometry.getExtent();
-
-                // making a union of extent or previous feature and current feature. 
-                newExtent = newExtent.union(thisExtent);
-                //var _sfs = new SimpleFillSymbol(SimpleFillSymbol.STYLE_NULL,
-                //    new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,
-                //    new Color("#6b39fd"), 5),new Color([0,0,0,0])
-                //);
-                //graphic.setSymbol(_sfs); 
-                //graphic.setInfoTemplate(popupTemplate); 
-                //wR.map.graphics.add(graphic); 
-              }
-
-
-              if (dom.byId("chkAutoZoom").checked == true) {
-                //if (dom.byId("chkAutoPan").checked == true) {
-                // zoom to new extent
-                wR.map.setExtent(newExtent.expand(1.5));
-                // pan to center of TAZ
-                //wR.map.centerAt(newExtent.getCenter()); //recenters the map based on a map coordinate.
-                //}
-              }
-            }
-          }
-        }
       },
 
       //Run when receiving a message
@@ -721,11 +377,6 @@ define(['dojo/_base/declare',
       },
 
       _turnoffall: function () {
-        for (let i = 0; i < aCategories.length; i++) {
-          dom.byId('rank' + aCategories[i]).value = "0.0000";
-          aCategoryWeights_Saved[i] = "0.0000";
-        }
-        wR._updateDisplay();
       },
 
       _buildMenu: function() {
@@ -733,7 +384,7 @@ define(['dojo/_base/declare',
         
 
         // check if data object populated
-        if (typeof dCategories !== "undefined" && typeof dLayers !== "undefined") {
+        if (typeof dCats !== "undefined" && typeof dLyrs !== "undefined") {
 
           var divMenu = dom.byId("menu");
           
@@ -743,12 +394,12 @@ define(['dojo/_base/declare',
           
           dojo.empty(divMenu);
 
-          for (c in dCategories) {
+          for (c in dCats) {
 
 
             dojo.place("<br/>", "menu");
 
-            bId = "button" + dCategories[c].CategoryCode;
+            bId = "button" + dCats[c].CategoryCode;
 
             var button3 = new Button({ label:'▶', id:bId, style:"display:inline"});
 
@@ -764,9 +415,9 @@ define(['dojo/_base/declare',
             //dojo.style(bId,"color",sFGColor);
             
             // category heading
-            dojo.place("<div class = \"grouptitle\" style=\"display:inline\"><p class=\"thicker\" style=\"display:inline\">" + dCategories[c].CategoryName + "</div><br/>", "menu");
+            dojo.place("<div class = \"grouptitle\" style=\"display:inline\"><p class=\"thicker\" style=\"display:inline\">" + dCats[c].CategoryName + "</div><br/>", "menu");
 
-            divCatName = "cat" + dCategories[c].CategoryCode
+            divCatName = "cat" + dCats[c].CategoryCode
 
             var divCat = domConstruct.create("div",{id:divCatName});
 
@@ -775,7 +426,7 @@ define(['dojo/_base/declare',
             divMenu.appendChild(divCat);
 
             // layers div
-            dojo.place("<div style=\"display: none;\" id=\"div" + dCategories[c].CategoryCode +  "\"", divCatName);
+            dojo.place("<div style=\"display: none;\" id=\"div" + dCats[c].CategoryCode +  "\"", divCatName);
 
             // category weight
             //dojo.place("<span style=\"display: flex; justify-content: flex-end\">Weight:&nbsp;</span>", divCatName);
@@ -789,7 +440,7 @@ define(['dojo/_base/declare',
 
 
             var selWeight = new Select({
-              name: "weight" + dCategories[c].CategoryCode,
+              name: "weight" + dCats[c].CategoryCode,
               options: [
                 { label: "10", value: "10", selected: true },
                 { label: "9" , value: "9"                  },
@@ -806,14 +457,14 @@ define(['dojo/_base/declare',
             }).placeAt(divCatName);
 
 
-            _layers = dLayers.filter(o => o['CategoryCode'] == dCategories[c].CategoryCode);
+            _layers = dLyrs.filter(o => o['CategoryCode'] == dCats[c].CategoryCode);
             _numlayers = _layers.length;
             // layers heading
 
             //dojo.place("<hr/>, divCatName);
 
             var selMaxOut = new Select({
-              name: "nummax" + dCategories[c].CategoryCode
+              name: "nummax" + dCats[c].CategoryCode
             }).placeAt(divCatName);
 
 

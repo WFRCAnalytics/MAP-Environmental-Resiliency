@@ -1,8 +1,8 @@
 jsonCats = 'widgets/Resiliency/data/cats.json'
 jsonLyrs = 'widgets/Resiliency/data/lyrs.json'
-jsonDist = 'widgets/Resiliency/data/dist/WETL.json'
 jsonSeqs = 'widgets/Resiliency/data/seqs.json'
 jsonGIds = 'widgets/Resiliency/data/gids.json'
+jsonDistFolder = 'widgets/Resiliency/data/dist/'
 
 var sCurCommunities = "";
 var dCurCommunities = [];
@@ -15,6 +15,9 @@ var WIDGETPOOLID_LEGEND = 0;
 var WIDGETPOOLID_SCORE = 2;
 
 var strSelectedPriorities = '';
+
+var numDist = 0;
+var ctDist = 0;
 
 define(['dojo/_base/declare',
   'dojo/dom',
@@ -142,24 +145,8 @@ define(['dojo/_base/declare',
             console.log(jsonLyrs);
             dLyrs = obj.data;
             wR._buildMenu();
-            wR._calculateScores();
-          },
-          error: function (err) {
-            /* this will execute if the response couldn't be converted to a JS object,
-               or if the request was unsuccessful altogether. */
-          }
-        });
-
-        // Populate distances object
-        dojo.xhrGet({
-          url: jsonDist,
-          handleAs: "json",
-          load: function (obj) {
-            /* here, obj will already be a JS object deserialized from the JSON response */
-            console.log(jsonDist);
-            dDist = obj;
-            console.log(dDist['4_108']);
-            wR._calculateScores();
+            numDist = dLyrs.length;
+            wR._readDist();
           },
           error: function (err) {
             /* this will execute if the response couldn't be converted to a JS object,
@@ -205,6 +192,32 @@ define(['dojo/_base/declare',
         }
       },
 
+      _readDist: function() {
+
+        for (l in dLyrs) {
+          _lyrCode = dLyrs[l].LayerCode;
+          // Populate distances object
+          dojo.xhrGet({
+            url: jsonDistFolder + _lyrCode + '.json',
+            handleAs: "json",
+            load: function (obj) {
+              /* here, obj will already be a JS object deserialized from the JSON response */
+              console.log(jsonDistFolder + _lyrCode + 'json');
+              dDist.push(obj);
+              dDistIndex.push(_lyrCode)
+              ctDist += 1;
+              if (ctDist==numDist) {
+                wR._calculateScores();
+              }
+            },
+            error: function (err) {
+              /* this will execute if the response couldn't be converted to a JS object,
+                or if the request was unsuccessful altogether. */
+            }
+          });
+        }
+      },
+
       _showLegend: function () {
         var pm = PanelManager.getInstance();
         pm.showPanel(wR.appConfig.widgetPool.widgets[WIDGETPOOLID_LEGEND]);
@@ -220,7 +233,7 @@ define(['dojo/_base/declare',
       _calculateScores: function() {
         console.log('_calculateScores');
 
-        if (typeof dGIds !== "undefined"  && typeof dSeqs !== "undefined" && typeof dCats !== "undefined" && typeof dLyrs !== "undefined" && typeof dDist !== "undefined") {
+        if (typeof dGIds !== "undefined"  && typeof dSeqs !== "undefined" && typeof dCats !== "undefined" && typeof dLyrs !== "undefined" && numDist>0 && ctDist==numDist) {
 
           // loop through all gis_ids
           for (i in dGIds) {
@@ -230,13 +243,21 @@ define(['dojo/_base/declare',
             for (s in _seqs) {
               for (c in dCats) {
                 var _lyrs = dLyrs.filter(o => o['CategoryCode'] == dCats[c].CategoryCode);
+                var _lyrsMaxOutCount = 4; // TEMPORARY REPLACE
+                console.log('TEMPORARILY USE 4 AS MAX OUT FOR ALL CATEGORIES');
+                var _ctLyrsWithScore = 0;
+                var _segScore = 0;
                 for (l in _lyrs) {
-                  var _index = dGIds[i].i + '_' + _seqs[s].s + '_' + _lyrs[l].LayerCode;
-                  var _distrec = dDist[_index];
-                  if (typeof _distrec !== "undefined") {
-                    var _dist = _distrec.d;
-                    console.log(_index)
-                    console.log(_dist)
+                  if (_ctLyrsWithScore <= _lyrsMaxOutCount) {
+                    var _dist = dDist[dDistIndex.indexof(_lyrs[l].LayerCode)].filter(o => o['d']<=ftBuffer*0.3048) // convert buffer to meters
+                    var _index = dGIds[i].i + '_' + _seqs[s].s;
+                    var _distrec = _dist[_index];
+                    if (typeof _distrec !== "undefined") { // if undefined, means there is a record... so no need to check value... only record score
+                      console.log(_index)
+                      console.log(_dist)
+                      _ctLyrsWithScore += 1;
+                      _segScore += 1 / _lyrsMaxOutCount;
+                    }
                   }
                 }
               }

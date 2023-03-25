@@ -38,7 +38,19 @@
       <tr>
         <td></td>
         <td colspan="2" width="300px;">
-          <span><b>Buffer (feet): </b></span><input data-dojo-type="dijit/form/TextBox" id="buffer" value="500"/>
+          <span><b>Buffer (feet): </b></span><!--<input data-dojo-type="dijit/form/TextBox" id="buffer" value="500"/>-->
+          <select id="buffer" data-dojo-type="dijit/form/Select">
+            <option value="100"         > 100</option>
+            <option value="200"         > 200</option>
+            <option value="300"         > 300</option>
+            <option value="400"         > 400</option>
+            <option value="500" selected> 500</option>
+            <option value="600"         > 600</option>
+            <option value="700"         > 700</option>
+            <option value="800"         > 800</option>
+            <option value="900"         > 900</option>
+            <option value="1000"        >1000</option>
+          </select>
         </td>
       </tr>
     </table>
@@ -63,22 +75,6 @@
       </tr>
     </table>
     <br />
-    <div id="oppzones" style="display:none;">
-      <table width="325px;">
-        <tr>
-          <td width="240px;">
-            <p class="thicker">Limit results to opportunity zones:</p>
-          </td>
-          <td width="85px;">
-            <select id="opportunityzones" data-dojo-type="dijit/form/Select">
-              <option value="Y">Yes</option>
-              <option value="N" selected>No </option>
-            </select>
-          </td>
-        </tr>
-      </table>
-      <br />
-    </div>
     <div id="turnoffall" data-dojo-attach-event="onClick: _turnoffall" class="clickablepointer" style="color:gray;">Set
       all weights to 'Exclude'</div>
   </div>

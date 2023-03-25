@@ -19,6 +19,9 @@ var strSelectedPriorities = '';
 var numDist = 0;
 var ctDist = 0;
 
+var dDist = [];
+var dDistIndex = [];
+
 define(['dojo/_base/declare',
   'dojo/dom',
   'dojo/dom-style',
@@ -195,22 +198,27 @@ define(['dojo/_base/declare',
       _readDist: function() {
 
         for (l in dLyrs) {
-          _lyrCode = dLyrs[l].LayerCode;
+
           // Populate distances object
           dojo.xhrGet({
-            url: jsonDistFolder + _lyrCode + '.json',
+            // get next layer code
+            url: jsonDistFolder + dLyrs[l].LayerCode + '.json',
             handleAs: "json",
             load: function (obj) {
+              console.log(this.url);
               /* here, obj will already be a JS object deserialized from the JSON response */
-              console.log(jsonDistFolder + _lyrCode + 'json');
               dDist.push(obj);
-              dDistIndex.push(_lyrCode)
+              dDistIndex.push(this.url.substring(this.url.length - 9, this.url.length - 5));
               ctDist += 1;
               if (ctDist==numDist) {
                 wR._calculateScores();
               }
             },
             error: function (err) {
+              ctDist += 1;
+              if (ctDist==numDist) {
+                wR._calculateScores();
+              }
               /* this will execute if the response couldn't be converted to a JS object,
                 or if the request was unsuccessful altogether. */
             }
@@ -233,41 +241,51 @@ define(['dojo/_base/declare',
       _calculateScores: function() {
         console.log('_calculateScores');
 
-        if (typeof dGIds !== "undefined"  && typeof dSeqs !== "undefined" && typeof dCats !== "undefined" && typeof dLyrs !== "undefined" && numDist>0 && ctDist==numDist) {
-
+        if (typeof dGIds !== "undefined"  && typeof dSeqs !== "undefined" && typeof dCats !== "undefined" && typeof dLyrs !== "undefined" && ctDist>0 && ctDist==numDist) {
+          let start = Date.now();
+          ftBuffer = 500; // REPLACE
+          console.log('TEMPORARILY USE HARD-CODED BUFFER')
+          meterBuffer = ftBuffer * 0.3048;
+          var _lyrsMaxOutCount = 4; // TEMPORARY REPLACE
+          console.log('TEMPORARILY USE 4 AS MAX OUT FOR ALL CATEGORIES');
           // loop through all gis_ids
           for (i in dGIds) {
             var _seqs = dSeqs.filter(o => o['i'] == dGIds[i].i);
             // loop through all sequences
             // search for seqs for GIds
             for (s in _seqs) {
+              var _index = dGIds[i].i + '_' + _seqs[s].s;
               for (c in dCats) {
                 var _lyrs = dLyrs.filter(o => o['CategoryCode'] == dCats[c].CategoryCode);
-                var _lyrsMaxOutCount = 4; // TEMPORARY REPLACE
-                console.log('TEMPORARILY USE 4 AS MAX OUT FOR ALL CATEGORIES');
                 var _ctLyrsWithScore = 0;
                 var _segScore = 0;
                 for (l in _lyrs) {
                   if (_ctLyrsWithScore <= _lyrsMaxOutCount) {
-                    var _dist = dDist[dDistIndex.indexof(_lyrs[l].LayerCode)].filter(o => o['d']<=ftBuffer*0.3048) // convert buffer to meters
-                    var _index = dGIds[i].i + '_' + _seqs[s].s;
-                    var _distrec = _dist[_index];
-                    if (typeof _distrec !== "undefined") { // if undefined, means there is a record... so no need to check value... only record score
-                      console.log(_index)
-                      console.log(_dist)
-                      _ctLyrsWithScore += 1;
-                      _segScore += 1 / _lyrsMaxOutCount;
+                    var _dist = dDist[dDistIndex.indexOf(_lyrs[l].LayerCode)]
+                    //var _distFiltered = _dist.filter(o => o['d']<=ftBuffer*0.3048) // convert buffer to meters
+                    if (typeof _dist!== "undefined"){
+                      var _distrec = _dist[_index];
+                      if (typeof _distrec !== "undefined") { // if undefined, means there is a record... so no need to check value... only record score
+                        if (_distrec['d']<=meterBuffer) {
+                          _ctLyrsWithScore += 1;
+                          _segScore += 1 / _lyrsMaxOutCount;
+                        }
+                      }
                     }
                   }
                 }
               }
             }
-            // loop through all categories
-
-            // loop through all layercodes
-
           }
+          let end = Date.now();
+          // elapsed time in milliseconds
+          let elapsed = end - start;   
+            
+          // converting milliseconds to seconds 
+          // by dividing 1000
+          console.log('_calculateScores time: ' + String(elapsed/1000));
         }
+        // get the end time
       },
 
       _updateDisplay: function () {

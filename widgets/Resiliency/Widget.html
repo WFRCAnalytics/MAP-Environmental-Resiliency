@@ -39,17 +39,13 @@
         <td></td>
         <td colspan="2" width="300px;">
           <span><b>Buffer (feet): </b></span><!--<input data-dojo-type="dijit/form/TextBox" id="buffer" value="500"/>-->
-          <select id="buffer" data-dojo-type="dijit/form/Select">
-            <option value="100"         > 100</option>
-            <option value="200"         > 200</option>
-            <option value="300"         > 300</option>
-            <option value="400"         > 400</option>
-            <option value="500" selected> 500</option>
-            <option value="600"         > 600</option>
-            <option value="700"         > 700</option>
-            <option value="800"         > 800</option>
-            <option value="900"         > 900</option>
-            <option value="1000"        >1000</option>
+          <select id="bufferText" data-dojo-type="dijit/form/Select" data-dojo-attach-event="onChange: _updateBuffer">
+            <option value="100" > 100</option>
+            <option value="200" > 200</option>
+            <option value="300" > 300</option>
+            <option value="400" > 400</option>
+            <option value="500" > 500</option>
+            <option value="600" > 600</option>
           </select>
         </td>
       </tr>

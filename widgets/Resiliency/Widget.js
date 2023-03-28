@@ -1,8 +1,8 @@
 jsonCats = 'widgets/Resiliency/data/cats.json'
 jsonLyrs = 'widgets/Resiliency/data/lyrs.json'
-jsonSeqs = 'widgets/Resiliency/data/seqs.json'
+jsonSegs = 'widgets/Resiliency/data/segs.json'
 jsonGIds = 'widgets/Resiliency/data/gids.json'
-jsonDistFolder = 'widgets/Resiliency/data/dist/'
+jsonWithinBufferFolder = 'widgets/Resiliency/data/within_buffers/'
 
 var sCurCommunities = "";
 var dCurCommunities = [];
@@ -16,11 +16,20 @@ var WIDGETPOOLID_SCORE = 2;
 
 var strSelectedPriorities = '';
 
-var numDist = 0;
-var ctDist = 0;
+var numCats = 0;
+var ctCats = 0;
 
-var dDist = [];
-var dDistIndex = [];
+var dWithinBuffers = [];
+var dWithinBuffersIndex = [];
+
+var curCheckedLayers = [];
+var curCatWeights = [];
+
+var curBuffer = 300;
+
+var segScores = [];
+
+var maxScore = 0;
 
 define(['dojo/_base/declare',
   'dojo/dom',
@@ -73,7 +82,7 @@ define(['dojo/_base/declare',
         console.log('startup');
 
         wR = this;
-        this.map.setInfoWindowOnClick(false); // turn off info window (popup) when clicking a feature
+        //this.map.setInfoWindowOnClick(false); // turn off info window (popup) when clicking a feature
 
         // Initialize Selection Layer, FromLayer, and ToLayer and define selection colors
         var layerInfosObject = LayerInfos.getInstanceSync();
@@ -90,6 +99,9 @@ define(['dojo/_base/declare',
           }
         }
 
+        // set current buffer
+        dom.byId('bufferText').value = curBuffer;
+
         // Populate gisids object
         dojo.xhrGet({
           url: jsonGIds,
@@ -98,7 +110,7 @@ define(['dojo/_base/declare',
             /* here, obj will already be a JS object deserialized from the JSON response */
             console.log(jsonGIds);
             dGIds = obj.data;
-            wR._calculateScores();
+            wR._dirtyQuery();
           },
           error: function (err) {
             /* this will execute if the response couldn't be converted to a JS object,
@@ -108,13 +120,13 @@ define(['dojo/_base/declare',
 
         // Populate categories object
         dojo.xhrGet({
-          url: jsonSeqs,
+          url: jsonSegs,
           handleAs: "json",
           load: function (obj) {
             /* here, obj will already be a JS object deserialized from the JSON response */
-            console.log(jsonSeqs);
-            dSeqs = obj.data;
-            wR._calculateScores();
+            console.log(jsonSegs);
+            dSegs = obj.data;
+            wR._dirtyQuery();
           },
           error: function (err) {
             /* this will execute if the response couldn't be converted to a JS object,
@@ -131,7 +143,8 @@ define(['dojo/_base/declare',
             console.log(jsonCats);
             dCats = obj.data;
             wR._buildMenu();
-            wR._calculateScores();
+            numCats = dCats.length;
+            wR._readWithinCurBuffer();
           },
           error: function (err) {
             /* this will execute if the response couldn't be converted to a JS object,
@@ -148,8 +161,6 @@ define(['dojo/_base/declare',
             console.log(jsonLyrs);
             dLyrs = obj.data;
             wR._buildMenu();
-            numDist = dLyrs.length;
-            wR._readDist();
           },
           error: function (err) {
             /* this will execute if the response couldn't be converted to a JS object,
@@ -174,56 +185,66 @@ define(['dojo/_base/declare',
 
         function selectParcelPiece(evt) {
           console.log('selectParcelPiece');
+        }
+      },
 
-          var query = new Query();
-          query.geometry = pointToExtent(wR.map, evt.mapPoint, iPixelSelectionTolerance);
-          query.returnGeometry = false;
-          query.outFields = ["*"];
+      _dirtyQuery: function() {
+        dom.byId('btnCalculateScores').style.backgroundColor = "red";
+        dom.byId('btnCalculateScores').innerHTML = "Run Query";
+        var vcUVRenderer = new UniqueValueRenderer({
+          type: "unique-value",  // autocasts as new UniqueValueRenderer()
+          valueExpression: "return 'class_0';",
+          uniqueValueInfos: [
+            { value: "class_0", label: "No Results"  , symbol: new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color("#bbbbbb"), 0.5)}
+          ]
+        });
+        lyrRTPResiliencySegs.setRenderer(vcUVRenderer);
+      },
 
-          var queryCommunity = new QueryTask(lyrRTPResiliencySegs.url);
-          queryCommunity.execute(query, clickCommunity);
+      _updateBuffer: function() {
+        console.log('_updateBuffer');
+        curBuffer = parseInt(dom.byId('bufferText').value);
+        wR._readWithinCurBuffer();
+      },
 
-          //Segment search results
-          function clickCommunity(results) {
-            console.log('clickCommunity');
-
-            var resultCount = results.features.length;
-            if (resultCount > 0) {
-              var _communityCode = results.features[0].attributes['CommCode'];
-            }
+      _readWithinCurBuffer: function() {
+        console.log('_readWithinCurBuffer');
+        if (typeof dCats !== "undefined") {
+          ctCats = 0;
+          dWithinBuffers = [];
+          dWithinBuffersIndex = [];
+          for (c in dCats) {
+            wR._readWithinBuffers(curBuffer,dCats[c].CategoryCode);
           }
         }
       },
 
-      _readDist: function() {
-
-        for (l in dLyrs) {
-
-          // Populate distances object
-          dojo.xhrGet({
-            // get next layer code
-            url: jsonDistFolder + dLyrs[l].LayerCode + '.json',
-            handleAs: "json",
-            load: function (obj) {
-              console.log(this.url);
-              /* here, obj will already be a JS object deserialized from the JSON response */
-              dDist.push(obj);
-              dDistIndex.push(this.url.substring(this.url.length - 9, this.url.length - 5));
-              ctDist += 1;
-              if (ctDist==numDist) {
-                wR._calculateScores();
-              }
-            },
-            error: function (err) {
-              ctDist += 1;
-              if (ctDist==numDist) {
-                wR._calculateScores();
-              }
-              /* this will execute if the response couldn't be converted to a JS object,
-                or if the request was unsuccessful altogether. */
+      _readWithinBuffers: function(_buf,_cat) {
+        console.log('_readWithinBuffers: buffer: ' + String(_buf) + ' category: ' + _cat);
+        // Populate distances object
+        dojo.xhrGet({
+          // get next layer code
+          url: jsonWithinBufferFolder + 'b' + parseInt(_buf) + '_' + _cat + '.json',
+          handleAs: "json",
+          load: function (obj) {
+            console.log(this.url);
+            /* here, obj will already be a JS object deserialized from the JSON response */
+            dWithinBuffers.push(obj);
+            dWithinBuffersIndex.push(this.url.substring(this.url.length - 7, this.url.length - 5));
+            ctCats += 1;
+            if (ctCats==numCats) {
+              wR._dirtyQuery();
             }
-          });
-        }
+          },
+          error: function (err) {
+            ctCats += 1;
+            if (ctCats==numCats) {
+              wR._dirtyQuery();
+            }
+            /* this will execute if the response couldn't be converted to a JS object,
+              or if the request was unsuccessful altogether. */
+          }
+        });
       },
 
       _showLegend: function () {
@@ -241,40 +262,48 @@ define(['dojo/_base/declare',
       _calculateScores: function() {
         console.log('_calculateScores');
 
-        if (typeof dGIds !== "undefined"  && typeof dSeqs !== "undefined" && typeof dCats !== "undefined" && typeof dLyrs !== "undefined" && ctDist>0 && ctDist==numDist) {
+        maxScore = 0;
+
+        // make sure objects are defined before entering
+        if (typeof dGIds !== "undefined"  && typeof dSegs !== "undefined" && typeof dCats !== "undefined" && typeof dLyrs !== "undefined" && ctCats>0 && ctCats==numCats) {
+          
+          curCheckedLayers = wR._getListCheckedLayers();
+          curCatWeights    = wR._getCatWeights();
+          curCatMaxOuts    = wR._getCatMaxOuts();
+
           let start = Date.now();
-          ftBuffer = 500; // REPLACE
-          console.log('TEMPORARILY USE HARD-CODED BUFFER')
-          meterBuffer = ftBuffer * 0.3048;
-          var _lyrsMaxOutCount = 4; // TEMPORARY REPLACE
-          console.log('TEMPORARILY USE 4 AS MAX OUT FOR ALL CATEGORIES');
+
           // loop through all gis_ids
-          for (i in dGIds) {
-            var _seqs = dSeqs.filter(o => o['i'] == dGIds[i].i);
+          for (g in dGIds) {
+            var _segs = dSegs.filter(o => o['g'] == dGIds[g].g);
             // loop through all sequences
             // search for seqs for GIds
-            for (s in _seqs) {
-              var _index = dGIds[i].i + '_' + _seqs[s].s;
+            for (s in _segs) {
+              _segScore = 0;
+              var _index = dGIds[g].g + '_' + _segs[s].s;
               for (c in dCats) {
-                var _lyrs = dLyrs.filter(o => o['CategoryCode'] == dCats[c].CategoryCode);
+                var _withinBuffers = dWithinBuffers[dWithinBuffersIndex.indexOf(dCats[c].CategoryCode)]
                 var _ctLyrsWithScore = 0;
-                var _segScore = 0;
-                for (l in _lyrs) {
-                  if (_ctLyrsWithScore <= _lyrsMaxOutCount) {
-                    var _dist = dDist[dDistIndex.indexOf(_lyrs[l].LayerCode)]
-                    //var _distFiltered = _dist.filter(o => o['d']<=ftBuffer*0.3048) // convert buffer to meters
-                    if (typeof _dist!== "undefined"){
-                      var _distrec = _dist[_index];
-                      if (typeof _distrec !== "undefined") { // if undefined, means there is a record... so no need to check value... only record score
-                        if (_distrec['d']<=meterBuffer) {
+                var _segCatScore = 0;
+                if (typeof _withinBuffers !== "undefined") {
+                  var _withinBufferRec = _withinBuffers[_index];
+                  if (typeof _withinBufferRec !== "undefined") {
+                    var _withinLayers = _withinBufferRec[dCats[c].CategoryCode].split(',');
+                    for (_w in _withinLayers) {
+                      if (curCheckedLayers.indexOf(_withinLayers[_w])>=0) {
+                        if (_ctLyrsWithScore < curCatMaxOuts[c]) {
                           _ctLyrsWithScore += 1;
-                          _segScore += 1 / _lyrsMaxOutCount;
                         }
                       }
                     }
+                    if (curCatMaxOuts[c]>0) {
+                      var _segCatScore = _ctLyrsWithScore / curCatMaxOuts[c] * curCatWeights[c];
+                    }
+                    _segScore += _segCatScore;
                   }
                 }
               }
+              maxScore = Math.max(maxScore,_segScore);
             }
           }
           let end = Date.now();
@@ -284,6 +313,10 @@ define(['dojo/_base/declare',
           // converting milliseconds to seconds 
           // by dividing 1000
           console.log('_calculateScores time: ' + String(elapsed/1000));
+          console.log('max score: ' + parseFloat(maxScore))
+          wR._updateDisplay();
+          dom.byId('btnCalculateScores').style.backgroundColor = "green";
+          dom.byId('btnCalculateScores').innerHTML = "Query Complete";
         }
         // get the end time
       },
@@ -291,111 +324,51 @@ define(['dojo/_base/declare',
       _updateDisplay: function () {
         console.log('_updateDisplay');
 
-        // filter by Community Code and Building Code
-        _strFilterExpression = "CommCode IN (" + sCurCommunities + ") AND BC IN (" + curLandUseFilter + ")"
-
-        // add opportunity zone filter
-        if (dom.byId('opportunityzones').value == 'Y') {
-          _strFilterExpression = _strFilterExpression + " AND OZ=1"
-        }
-        lyrParcelPieces.setDefinitionExpression(_strFilterExpression);
-
         // build expression for symbology based on each categories rank
-        var _scoreExp = '';
-        var _strHig = '';
-        var _strMed = '';
-        var _strLow = '';
 
-        maxScore_Places = 0.0;
-        maxScore_Access = 0.0;
-        maxScore_Transp = 0.0;
-        maxScore_Necess = 0.0;
+        _scoreExp = "var totScore = 0;";
+        _scoreExp += "var catScore = 0;";
+        _scoreExp += "var ctLyr    = 0;";
 
-        maxPossible = 0.0;
-
-        aCategoryWeights = [];
-
-        for (let i = 0; i < aCategories.length; i++) {
-          _value = parseFloat(dom.byId('rank' + aCategories[i]).value);
-          _scoreExp += " $feature." + aCategories[i] + " * " + String(_value)
-
-          aCategoryWeights.push(_value);
-
-          switch (aCategories_Groups[i]) {
-            case 'places':
-              if (_value > maxScore_Places) { // can't add max since these places never overlap
-                maxScore_Places = _value;
-              }
-              break;
-            case 'access':
-              maxScore_Access += _value;
-              break;
-            case 'transp':
-              maxScore_Transp += _value;
-              break;
-            case 'necess':
-              maxScore_Necess += _value;
-              break;
+        for (c in dCats) {
+          _curbuf = String(curBuffer);
+          _weight = String(curCatWeights[c]);
+          _maxOut = String(curCatMaxOuts[c]);
+          _lyrs = dLyrs.filter(o => o['CategoryCode'] == dCats[c].CategoryCode);
+          
+          _scoreExp += "catScore = 0;";
+          _scoreExp += "ctLyr    = 0;";
+          for (l in _lyrs) {
+            if (curCheckedLayers.indexOf(_lyrs[l].LayerCode)>=0) {
+              _scoreExp += "if ($feature." + _lyrs[l].LayerCode + " >= 0 && $feature." + _lyrs[l].LayerCode + " < " + curBuffer + " && ctLyr < " + _maxOut + " && " + _maxOut + ">0) {" +
+                          " catScore +=  " + _weight + " / " + _maxOut + ";" +
+                          " ctLyr += 1;" +
+                          "}";
+            }
           }
-
-          // for all but last item add plus(+) sign between expressions
-          if (i != aCategories.length - 1) {
-            _scoreExp += " + ";
-          }
-
-          switch (dom.byId('rank' + aCategories[i]).value) {
-            case '0.3333':
-              _strLow += aCategories_Names[i] + ", ";
-              break;
-            case '0.6667':
-              _strMed += aCategories_Names[i] + ", ";
-              break;
-            case '1.0000':
-              _strHig += aCategories_Names[i] + ", ";
-              break;
-          }
-
+          _scoreExp += "totScore += catScore;"
         }
 
-        maxPossible = maxScore_Places + maxScore_Access + maxScore_Transp + maxScore_Necess;
-
-        if (_strHig.length > 0 && _strMed.length > 0 && _strLow.length > 0) {
-          strSelectedPriorities = 'High Priority: ' + _strHig.substring(0, _strHig.length - 2) + " -- " + 'Medium Priority: ' + _strMed.substring(0, _strMed.length - 2) + " -- " + 'Low Priority: ' + _strLow.substring(0, _strLow.length - 2);
-        } else if (_strHig.length > 0 && _strMed.length > 0 && _strLow.length == 0) {
-          strSelectedPriorities = 'High Priority: ' + _strHig.substring(0, _strHig.length - 2) + " -- " + 'Medium Priority: ' + _strMed.substring(0, _strMed.length - 2);
-        } else if (_strHig.length > 0 && _strMed.length == 0 && _strLow.length > 0) {
-          strSelectedPriorities = 'High Priority: ' + _strHig.substring(0, _strHig.length - 2) + " -- " + 'Low Priority: ' + _strLow.substring(0, _strLow.length - 2);
-        } else if (_strHig.length == 0 && _strMed.length > 0 && _strLow.length > 0) {
-          strSelectedPriorities = 'Medium Priority: ' + _strMed.substring(0, _strMed.length - 2) + " -- " + 'Low Priority: ' + _strLow.substring(0, _strLow.length - 2);
-        } else if (_strHig.length > 0 && _strMed.length == 0 && _strLow.length == 0) {
-          strSelectedPriorities = 'High Priority: ' + _strHig.substring(0, _strHig.length - 2);
-        } else if (_strHig.length > 0 && _strMed.length == 0 && _strLow.length == 0) {
-          strSelectedPriorities = 'Medium Priority: ' + _strMed.substring(0, _strMed.length - 2);
-        } else if (_strHig.length == 0 && _strMed.length == 0 && _strLow.length > 0) {
-          strSelectedPriorities = 'Low Priority: ' + _strLow.substring(0, _strLow.length - 2);
-        } else {
-          strSelectedPriorities = '';
-        }
 
         var vcUVRenderer = new UniqueValueRenderer({
           type: "unique-value",  // autocasts as new UniqueValueRenderer()
-          valueExpression: "" +
-            "var score = (" + _scoreExp + ')/' + maxPossible + ";" +
-            "if      (score>0.80) { return 'class_5'; }" +
-            "else if (score>0.60) { return 'class_4'; }" +
-            "else if (score>0.40) { return 'class_3'; }" +
-            "else if (score>0.20) { return 'class_2'; }" +
-            "else                 { return 'class_1'; }",
+          valueExpression: _scoreExp + "" +
+            "var score = (totScore) /" + maxScore + ";" +
+            "if      (score>=0.95) { return 'class_5'; }" +
+            "else if (score>=0.85) { return 'class_4'; }" +
+            "else if (score>=0.60) { return 'class_3'; }" +
+            "else if (score>=0.30) { return 'class_2'; }" +
+            "else                  { return 'class_1'; }",
           uniqueValueInfos: [
-            { value: "class_5", label: "Most Accessibility (80-100% of Max Possible)", symbol: new SimpleFillSymbol(SimpleFillSymbol.STYLE_SOLID, new SimpleLineSymbol(SimpleLineSymbol.STYLE_NULL, new Color([255, 255, 255]), 5), new Color("#031273")) },
-            { value: "class_4", label: "High Accessibility (60-80% of Max Possible)", symbol: new SimpleFillSymbol(SimpleFillSymbol.STYLE_SOLID, new SimpleLineSymbol(SimpleLineSymbol.STYLE_NULL, new Color([255, 255, 255]), 5), new Color("#2c7fb8")) },
-            { value: "class_3", label: "Middle Accessibility (40-60% of Max Possible)", symbol: new SimpleFillSymbol(SimpleFillSymbol.STYLE_SOLID, new SimpleLineSymbol(SimpleLineSymbol.STYLE_NULL, new Color([255, 255, 255]), 5), new Color("#52c7d5")) },
-            { value: "class_2", label: "Low Accessibility (20-40% of Max Possible)", symbol: new SimpleFillSymbol(SimpleFillSymbol.STYLE_SOLID, new SimpleLineSymbol(SimpleLineSymbol.STYLE_NULL, new Color([255, 255, 255]), 5), new Color("#a1dab4")) },
-            { value: "class_1", label: "Least Accessibility (0-20% of Max Possible)", symbol: new SimpleFillSymbol(SimpleFillSymbol.STYLE_SOLID, new SimpleLineSymbol(SimpleLineSymbol.STYLE_NULL, new Color([255, 255, 255]), 5), new Color("#ffffcc")) }
+            { value: "class_5", label: "Most Accessibility (95-100% of Max)" , symbol: new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color("#031273"), 5)},
+            { value: "class_4", label: "High Accessibility (85-95% of Max)"  , symbol: new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color("#2c7fb8"), 4)},
+            { value: "class_3", label: "Middle Accessibility (70-85% of Max)", symbol: new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color("#52c7d5"), 3)},
+            { value: "class_2", label: "Low Accessibility (50-70% of Max)"   , symbol: new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color("#a1dab4"), 2)},
+            { value: "class_1", label: "Least Accessibility (0-50% of Max)"  , symbol: new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color("#ffffcc"), 1)}
           ]
 
         });
-        lyrParcelPieces.setRenderer(vcUVRenderer);
+        lyrRTPResiliencySegs.setRenderer(vcUVRenderer);
 
       },
 
@@ -415,8 +388,22 @@ define(['dojo/_base/declare',
         }
       },
 
-      _turnoffall: function () {
+      _uncheckAll: function () {
+        console.log('_uncheckAll')
+        _curState = dom.byId(turnoffall).innerHTML;
+        for (l in dLyrs) {
+          if (_curState=='Uncheck All' && dom.byId('chk' + dLyrs[l].LayerCode).checked==true) {
+            dom.byId('chk' + dLyrs[l].LayerCode).checked = false;
+            wR._dirtyQuery();
+            dom.byId(turnoffall).innerHTML = 'Check All';
+          } else if (_curState=='Check All' && dom.byId('chk' + dLyrs[l].LayerCode).checked==false) {
+            dom.byId('chk' + dLyrs[l].LayerCode).checked = true;
+            wR._dirtyQuery();
+            dom.byId(turnoffall).innerHTML = 'Uncheck All';
+          }
+        }
       },
+
 
       _buildMenu: function() {
         console.log('_buildMenu');
@@ -434,7 +421,6 @@ define(['dojo/_base/declare',
           dojo.empty(divMenu);
 
           for (c in dCats) {
-
 
             dojo.place("<br/>", "menu");
 
@@ -471,7 +457,7 @@ define(['dojo/_base/declare',
             //dojo.place("<span style=\"display: flex; justify-content: flex-end\">Weight:&nbsp;</span>", divCatName);
             
             // weight heading
-            dojo.place("<span>&nbsp;&nbsp;&nbsp&nbsp;&nbsp;&nbsp&nbsp;&nbsp;&nbsp&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<small>Weight</small>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<small>Max Out #</small></span>", divCatName);
+            dojo.place("<span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<small>Weight</small>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<small>Max Out #</small></span>", divCatName);
             dojo.place("<br/>", divCatName);
 
 
@@ -479,7 +465,7 @@ define(['dojo/_base/declare',
 
 
             var selWeight = new Select({
-              name: "weight" + dCats[c].CategoryCode,
+              id: "weight" + dCats[c].CategoryCode,
               options: [
                 { label: "10", value: "10", selected: true },
                 { label: "9" , value: "9"                  },
@@ -492,7 +478,11 @@ define(['dojo/_base/declare',
                 { label: "2" , value: "2"                  },
                 { label: "1" , value: "1"                  },
                 { label: "0" , value: "0"                  }
-              ]
+              ],
+              onChange: function(newValue){
+                console.log("weight onChange");
+                wR._dirtyQuery();
+              }
             }).placeAt(divCatName);
 
 
@@ -503,7 +493,11 @@ define(['dojo/_base/declare',
             //dojo.place("<hr/>, divCatName);
 
             var selMaxOut = new Select({
-              name: "nummax" + dCats[c].CategoryCode
+              id: "maxout" + dCats[c].CategoryCode,
+              onChange: function(newValue){
+                console.log("weight onChange");
+                wR._dirtyQuery();
+              }
             }).placeAt(divCatName);
 
 
@@ -561,7 +555,16 @@ define(['dojo/_base/declare',
             selMaxOut.set("value",Math.min(4,_numlayers))
             selMaxOut.startup();
           }
+          
+          for (l in dLyrs) {
+            dom.byId('chk' + dLyrs[l].LayerCode).onchange = function(){
+              wR._dirtyQuery();
+            };
+          }
+          
+          wR._dirtyQuery();
         }
+        
 
         //for (var k = 0; k < 2; k++) {
         //  
@@ -603,21 +606,68 @@ define(['dojo/_base/declare',
         //  }
         //  dojo.place("</br></br></br>", "resultssection");
         //}
+        
+      },
+
+      _getCatWeights: function() {
+        console.log('_getCatWeights');
+        var _lstCatWeights = [];
+        for (c in dCats) {
+          var wd = dom.byId('weight' + dCats[c].CategoryCode);
+          _lstCatWeights.push(parseInt(wd.textContent));
+        }
+        return _lstCatWeights;
+      },
+
+      _getCatMaxOuts: function() {
+        console.log('_getCatMaxOuts');
+        var _lstCatMaxOuts = [];
+        for (c in dCats) {
+          var wd = dom.byId('maxout' + dCats[c].CategoryCode);
+          if (wd.textContent!=='') {
+            _lstCatMaxOuts.push(parseInt(wd.textContent));
+          } else {
+            _lstCatMaxOuts.push(0);
+          }
+        }
+        return _lstCatMaxOuts;
+      },
+
+      _getListCheckedLayers: function() {
+        console.log('_getListCheckedLayers');
+        var _lstCheckedLayers = [];
+        for (l in dLyrs) {
+          if (dom.byId('chk' + dLyrs[l].LayerCode).checked==true) {
+            _lstCheckedLayers.push(dLyrs[l].LayerCode);
+          }
+        }
+        return _lstCheckedLayers;
       },
 
       _expand: function() {
         console.log('_expand');
 
-        var myBut = registry.byId("button" + this.id.slice(-2));
-        var divCat = dom.byId("cat" + this.id.slice(-2));
+        //var myBut = registry.byId("button" + this.id.slice(-2));
+        //var divCat = dom.byId("cat" + this.id.slice(-2));
+        
+        var clickedCat = this.id.slice(-2)
 
-        if (divCat.style.display=='none') {
-          divCat.style.display='block';
-          myBut.set('label','▼');
-        } else {
-          divCat.style.display='none';
-          myBut.set('label','▶');
+        for (c in dCats) {
+
+          myBut = registry.byId("button" + dCats[c].CategoryCode);
+          divCat = dom.byId("cat" + dCats[c].CategoryCode);
+          
+          if (divCat.style.display=='none' && clickedCat==dCats[c].CategoryCode) {
+            divCat.style.display='block';
+            myBut.set('label','▼');
+          } else {
+            divCat.style.display='none';
+            myBut.set('label','▶');
+          }
+
         }
+
+
         
       }
 

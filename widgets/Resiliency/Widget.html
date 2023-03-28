@@ -63,19 +63,25 @@
           <div id="menu"></div>
         </td>
       </tr>
+    </table>
+    <br/>
+    <table width="100%">
       <tr>
-        <td colspan=3>
+        <td>
+          <div id="turnoffall" data-dojo-attach-event="onClick: _uncheckAll" class="clickablepointer" style="color:gray;">Uncheck All</div>
+        </td>
+        <td>
           <div id="showlegend" data-dojo-attach-event="onClick: _showLegend" class="clickablepointer"
             style="color:green; display: flex; justify-content: flex-end">show legend</div>
         </td>
       </tr>
     </table>
     <br />
-    <div id="turnoffall" data-dojo-attach-event="onClick: _turnoffall" class="clickablepointer" style="color:gray;">Set
-      all weights to 'Exclude'</div>
+
   </div>
-  <hr />
+  <div id="btnCalculateScores" class="jimu-btn" data-dojo-attach-event="onClick: _calculateScores" style="width: 100%;">Run Query</div>
   <br />
+  <hr />
   <table width="325px;">
     <tr>
       <td width="195px;">
@@ -98,5 +104,4 @@
       </td>
     </tr>
   </table>
-
 </div>

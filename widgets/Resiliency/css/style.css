@@ -11,20 +11,22 @@
   overflow: hidden;
 }
 
-
 .categorylist {
   width: 320px;
   padding: 10px;
   white-space: nowrap;
   overflow: auto;
 }
-.categoryitem {
+
+.projectitem {
   width: 250px;
-  display: inline-block;
+  /*display: inline-block;*/
+  display: inline;
   vertical-align: middle;
   text-overflow:ellipsis;
   overflow: hidden;
 }
+
 .grouptitle{
   height: 20px;
   width: 100%;
@@ -39,124 +41,8 @@
 }
 
 
-
 th, td {
   padding: 2px;
-}
-
-div.selectedWidget {
-  cursor: pointer;
-  color: #005fa2; /*sCTextOn*/
-  background-color: #90EE90; /*sCTabOn*/
-  padding: 5px;
-  padding-right: 1px;
-}
-
-div.selectedWidget:hover {
-  color: #005fa2;;
-  background-color: lightblue;
-}
-
-div.unselectedWidget {
-  cursor: pointer;
-  color: #ffffff; /*cCTextOff*/
-  background-color: #bbbbbb;  /*sCTabOff*/
-  padding: 5px;
-  padding-right: 1px;
-}
-
-div.unselectedWidget:hover {
-  color: white;
-  background-color: lightblue;
-}
-div.selectedToggle {
-  cursor: pointer;
-  font-size: 100%;
-  color: #005fa2; /*sCTextOn*/
-  background-color: #90EE90; /*sCTabOn*/
-  padding: 1px;
-}
-
-div.community:hover {
-  color: #FFFFFF;
-  background-color: #FF0000;
-  cursor: pointer;
-}
-
-
-div.selectedToggle:hover {
-  color: #005fa2;;
-  background-color: lightblue;
-}
-
-div.unselectedToggle {
-  cursor: pointer;
-  font-size: 100%;
-  color: #ffffff; /*cCTextOff*/
-  background-color: #bbbbbb;  /*sCTabOff*/
-  padding: 1px;
-}
-
-div.unselectedToggle:hover {
-  color: white;
-  background-color: lightblue;
-}
-
-div.toggleVolSelected {
-  cursor: pointer;
-  font-size: 80%;
-  color: #005fa2; /*sCTextOn*/
-  background-color: #90EE90; /*sCTabOn*/
-}
-
-div.toggleVolSelected:hover {
-  color: #005fa2;;
-  background-color: lightblue;
-}
-
-div.toggleVolUnselected {
-  cursor: pointer;
-  font-size: 80%;
-  color: #ffffff; /*cCTextOff*/
-  background-color: #bbbbbb;  /*sCTabOff*/
-}
-
-div.toggleVolUnselected:hover {
-  color: white;
-  background-color: lightblue;
-}
-
-div.tabcontrol {
-  position: relative;
-  left: 30px;
-  cursor: pointer;
-}
-
-div.pictureVOL {
-  width:25px; /*width of your image*/
-  height:25px; /*height of your image*/
-  background-image:url('../images/icon_VOL_blue.png');
-  margin:0; /* If you want no margin */
-  padding:0; /*if your want to padding */
-  /*display:inline;*/
-}
-
-div.pictureSE {
-  width:25px; /*width of your image*/
-  height:25px; /*height of your image*/
-  background-image:url('../images/icon_SE_white.png');
-  margin:0; /* If you want no margin */
-  padding:0; /*if your want to padding */
-  /*display:inline;*/
-}
-
-div.pictureUTP {
-  width:25px; /*width of your image*/
-  height:25px; /*height of your image*/
-  background-image:url('../images/icon_UTP_white.png');
-  margin:0; /* If you want no margin */
-  padding:0; /*if your want to padding */
-  /*display:inline;*/
 }
 
 div.clickablepointer {

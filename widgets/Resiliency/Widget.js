@@ -1,35 +1,45 @@
-jsonCats = 'widgets/Resiliency/data/cats.json'
-jsonLyrs = 'widgets/Resiliency/data/lyrs.json'
-jsonSegs = 'widgets/Resiliency/data/segs.json'
-jsonGIds = 'widgets/Resiliency/data/gids.json'
-jsonWithinBufferFolder = 'widgets/Resiliency/data/within_buffers/'
-
-var sCurCommunities = "";
-var dCurCommunities = [];
-var lyrRTPResiliencySegs;
-var lyrRTPResiliencySegs_Selected;
 var sRTPResiliencySegs = 'RTP Resiliency Segments';
-var sRTPResiliencySegs_Selected = 'RTP Resiliency Projects Selected';
+var sRTPResiliencySegs_Selected = 'RTP Resiliency Projects - Lines';
+
+// bins for scoring based on percent of max and bins for coloring layers
+var lstBinLows      = [0.95     , 0.85     , 0.60     , 0.30     , 0.00     ];
+var lstYellowToBlue = ["#031273", "#2c7fb8", "#52c7d5", "#a1dab4", "#ffffcc"];
+
+var curBuffer = 300; // default buffer
+var curResultSort = 'length';
+var segLengthMiles = 0.125; // from the data prep notebook
+
+var jsonCats = 'widgets/Resiliency/data/cats.json'
+var jsonLyrs = 'widgets/Resiliency/data/lyrs.json'
+var jsonSegs = 'widgets/Resiliency/data/segs.json'
+var jsonGIds = 'widgets/Resiliency/data/gids.json'
+var jsonWithinBufferFolder = 'widgets/Resiliency/data/within_buffers/'
 
 var WIDGETPOOLID_LEGEND = 0;
 var WIDGETPOOLID_SCORE = 2;
 
+// initialize global variables
+var aPrjBinCumLengths = [];
+var aPrjBinCumLengthsPercent =[];
+var sCurCommunities = "";
+var dCurCommunities = [];
+var lyrRTPResiliencySegs;
+var lyrRTPResiliencySegs_Selected;
 var strSelectedPriorities = '';
-
 var numCats = 0;
 var ctCats = 0;
-
 var dWithinBuffers = [];
 var dWithinBuffersIndex = [];
-
 var curCheckedLayers = [];
 var curCatWeights = [];
-
-var curBuffer = 300;
-
+var curCatNumCheckedLayers = [];
 var segScores = [];
 
-var maxScore = 0;
+var maxScore = 0; // max score of all segments... used for calculating bins and percentages, which are all relative to max
+
+//https://colors.artyclick.com/color-names-dictionary/color-names/light-navy-blue-color#:~:text=The%20color%20Light%20Navy%20Blue%20corresponds%20to%20the%20hex%20code%20%232E5A88.
+var dBlues11bg = ["#FFFFFF","#DFE8F1","#C2D3E4","#A7BED7","#8EABC9","#7798BC","#6287AF","#4E76A1","#3D6794","#2D5987","#2D5987"]
+var dBlues11fg = ["#2D5987","#2D5987","#2D5987","#FFFFFF","#FFFFFF","#FFFFFF","#FFFFFF","#DFE8F1","#DFE8F1","#DFE8F1","#DFE8F1"]
 
 define(['dojo/_base/declare',
   'dojo/dom',
@@ -93,7 +103,7 @@ define(['dojo/_base/declare',
             console.log(sRTPResiliencySegs + ' Found');
           } else if (currentLayerInfo.title == sRTPResiliencySegs_Selected) {
             lyrRTPResiliencySegs_Selected = layerInfosObject._layerInfos[j].layerObject;
-            lyrRTPResiliencySegs_Selected.setDefinitionExpression("CommCode IN ('NONE')");
+            lyrRTPResiliencySegs_Selected.setDefinitionExpression("GIS_ID IN ('NONE')");
             lyrRTPResiliencySegs_Selected.show();
             console.log(sRTPResiliencySegs_Selected + ' Found');
           }
@@ -195,10 +205,11 @@ define(['dojo/_base/declare',
           type: "unique-value",  // autocasts as new UniqueValueRenderer()
           valueExpression: "return 'class_0';",
           uniqueValueInfos: [
-            { value: "class_0", label: "No Results"  , symbol: new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color("#bbbbbb"), 0.5)}
+            { value: "class_0", label: "No Results"  , symbol: new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color("#dcdcdc"), 0.5)}
           ]
         });
         lyrRTPResiliencySegs.setRenderer(vcUVRenderer);
+        lyrRTPResiliencySegs_Selected.hide();
       },
 
       _updateBuffer: function() {
@@ -267,9 +278,10 @@ define(['dojo/_base/declare',
         // make sure objects are defined before entering
         if (typeof dGIds !== "undefined"  && typeof dSegs !== "undefined" && typeof dCats !== "undefined" && typeof dLyrs !== "undefined" && ctCats>0 && ctCats==numCats) {
           
-          curCheckedLayers = wR._getListCheckedLayers();
-          curCatWeights    = wR._getCatWeights();
-          curCatMaxOuts    = wR._getCatMaxOuts();
+          curCheckedLayers       = wR._getListCheckedLayers();
+          curCatWeights          = wR._getCatWeights();
+          curCatMaxOuts          = wR._getCatMaxOuts();
+          curCatNumCheckedLayers = wR._getCatNumCheckedLayers();
 
           let start = Date.now();
 
@@ -285,6 +297,9 @@ define(['dojo/_base/declare',
                 var _withinBuffers = dWithinBuffers[dWithinBuffersIndex.indexOf(dCats[c].CategoryCode)]
                 var _ctLyrsWithScore = 0;
                 var _segCatScore = 0;
+
+                var _divisor = Math.min(curCatMaxOuts[c],curCatNumCheckedLayers[c])
+
                 if (typeof _withinBuffers !== "undefined") {
                   var _withinBufferRec = _withinBuffers[_index];
                   if (typeof _withinBufferRec !== "undefined") {
@@ -296,8 +311,8 @@ define(['dojo/_base/declare',
                         }
                       }
                     }
-                    if (curCatMaxOuts[c]>0) {
-                      var _segCatScore = _ctLyrsWithScore / curCatMaxOuts[c] * curCatWeights[c];
+                    if (_divisor>0) {
+                      var _segCatScore = _ctLyrsWithScore / _divisor * curCatWeights[c];
                     }
                     _segScore += _segCatScore;
                   }
@@ -314,11 +329,312 @@ define(['dojo/_base/declare',
           // by dividing 1000
           console.log('_calculateScores time: ' + String(elapsed/1000));
           console.log('max score: ' + parseFloat(maxScore))
+
+          // update layer display
           wR._updateDisplay();
+
+          // change button color and text
           dom.byId('btnCalculateScores').style.backgroundColor = "green";
           dom.byId('btnCalculateScores').innerHTML = "Query Complete";
+
+          // score the projects based on max score
+          wR._scoreProjects();
         }
         // get the end time
+      },
+
+      _scoreProjects: function() {
+        console.log('_scoreProjects');
+        
+        // make sure objects are defined before entering
+        if (typeof dGIds !== "undefined"  && typeof dSegs !== "undefined" && typeof dCats !== "undefined" && typeof dLyrs !== "undefined" && ctCats>0 && ctCats==numCats) {
+          
+          curCheckedLayers       = wR._getListCheckedLayers();
+          curCatWeights          = wR._getCatWeights();
+          curCatMaxOuts          = wR._getCatMaxOuts();
+          curCatNumCheckedLayers = wR._getCatNumCheckedLayers();
+
+          let start = Date.now();
+
+          aPrjBinCumLengths        = [];
+          aPrjBinCumLengthsPercent = [];
+
+          // loop through all gis_ids
+          for (g in dGIds) {
+            var _projLength = 0;
+            var _segs = dSegs.filter(o => o['g'] == dGIds[g].g);
+            // loop through all sequences
+            // search for seqs for GIds
+
+            var _dSegBinCumLengths = new Array(lstBinLows.length + 1).fill(0); // add one for the seg index
+
+            for (var s=0; s<_segs.length; s++) {
+              _segScore = 0;
+              if (s==_segs.length) {
+                _segLength = segLengthMiles / 2; // assume last segment is 1/2 seg length, since last seg is always a remant... so for random seg length, 1/2 should be average... don't care too much about it, and don't want to slow down processing to get actual length of final segment
+              } else {
+                _segLength = segLengthMiles;
+              }
+
+              _projLength += _segLength;
+
+              var _index = dGIds[g].g + '_' + _segs[s].s;
+              for (c in dCats) {
+                var _withinBuffers = dWithinBuffers[dWithinBuffersIndex.indexOf(dCats[c].CategoryCode)]
+                var _ctLyrsWithScore = 0;
+                var _segCatScore = 0;
+
+                var _divisor = Math.min(curCatMaxOuts[c],curCatNumCheckedLayers[c])
+
+                if (typeof _withinBuffers !== "undefined") {
+                  var _withinBufferRec = _withinBuffers[_index];
+                  if (typeof _withinBufferRec !== "undefined") {
+                    var _withinLayers = _withinBufferRec[dCats[c].CategoryCode].split(',');
+                    for (_w in _withinLayers) {
+                      if (curCheckedLayers.indexOf(_withinLayers[_w])>=0) {
+                        if (_ctLyrsWithScore < curCatMaxOuts[c]) {
+                          _ctLyrsWithScore += 1;
+                        }
+                      }
+                    }
+                    if (_divisor>0) {
+                      var _segCatScore = _ctLyrsWithScore / _divisor * curCatWeights[c];
+                    }
+                    _segScore += _segCatScore;
+                  }
+                }
+              }
+              _segScorePercentMax = _segScore / maxScore;
+
+              // add distance to correct cummulative bins
+              for (b in lstBinLows) {
+                if (_segScorePercentMax >= lstBinLows[b]) {
+                  _dSegBinCumLengths[b] += _segLength;
+                }
+              }
+
+            }
+            // add seg index
+            _dSegBinCumLengths[_dSegBinCumLengths.length - 1] = g;
+
+            // push seg bin lengths to array
+            aPrjBinCumLengths.push(_dSegBinCumLengths);
+            
+            var arrTemp = _dSegBinCumLengths.slice(0, -1).map(num => num / _projLength);
+            arrTemp.push(parseFloat(_dSegBinCumLengths[_dSegBinCumLengths.length - 1]));
+            // calculate percent and push 
+            // divide all but last element by project length
+            aPrjBinCumLengthsPercent.push(arrTemp);
+
+          }
+          let end = Date.now();
+          // elapsed time in milliseconds
+          let elapsed = end - start;
+
+          wR._updateResults();
+        }
+      },
+
+
+      _getProjectScore: function() {
+        console.log('_scoreProjects');
+        
+        // make sure objects are defined before entering
+        if (typeof dGIds !== "undefined"  && typeof dSegs !== "undefined" && typeof dCats !== "undefined" && typeof dLyrs !== "undefined" && ctCats>0 && ctCats==numCats) {
+          
+          curCheckedLayers       = wR._getListCheckedLayers();
+          curCatWeights          = wR._getCatWeights();
+          curCatMaxOuts          = wR._getCatMaxOuts();
+          curCatNumCheckedLayers = wR._getCatNumCheckedLayers();
+
+          let start = Date.now();
+
+          aPrjBinCumLengths        = [];
+          aPrjBinCumLengthsPercent = [];
+
+          // loop through all gis_ids
+          for (g in dGIds) {
+            var _projLength = 0;
+            var _segs = dSegs.filter(o => o['g'] == dGIds[g].g);
+            // loop through all sequences
+            // search for seqs for GIds
+
+            var _dSegBinCumLengths = new Array(lstBinLows.length + 1).fill(0); // add one for the seg index
+
+            for (var s=0; s<_segs.length; s++) {
+              _segScore = 0;
+              if (s==_segs.length) {
+                _segLength = segLengthMiles / 2; // assume last segment is 1/2 seg length, since last seg is always a remant... so for random seg length, 1/2 should be average... don't care too much about it, and don't want to slow down processing to get actual length of final segment
+              } else {
+                _segLength = segLengthMiles;
+              }
+
+              _projLength += _segLength;
+
+              var _index = dGIds[g].g + '_' + _segs[s].s;
+              for (c in dCats) {
+                var _withinBuffers = dWithinBuffers[dWithinBuffersIndex.indexOf(dCats[c].CategoryCode)]
+                var _ctLyrsWithScore = 0;
+                var _segCatScore = 0;
+
+                var _divisor = Math.min(curCatMaxOuts[c],curCatNumCheckedLayers[c])
+
+                if (typeof _withinBuffers !== "undefined") {
+                  var _withinBufferRec = _withinBuffers[_index];
+                  if (typeof _withinBufferRec !== "undefined") {
+                    var _withinLayers = _withinBufferRec[dCats[c].CategoryCode].split(',');
+                    for (_w in _withinLayers) {
+                      if (curCheckedLayers.indexOf(_withinLayers[_w])>=0) {
+                        if (_ctLyrsWithScore < curCatMaxOuts[c]) {
+                          _ctLyrsWithScore += 1;
+                        }
+                      }
+                    }
+                    if (_divisor>0) {
+                      var _segCatScore = _ctLyrsWithScore / _divisor * curCatWeights[c];
+                    }
+                    _segScore += _segCatScore;
+                  }
+                }
+              }
+              _segScorePercentMax = _segScore / maxScore;
+
+              // add distance to correct cummulative bins
+              for (b in lstBinLows) {
+                if (_segScorePercentMax >= lstBinLows[b]) {
+                  _dSegBinCumLengths[b] += _segLength;
+                }
+              }
+
+            }
+            // add seg index
+            _dSegBinCumLengths[_dSegBinCumLengths.length - 1] = g;
+
+            // push seg bin lengths to array
+            aPrjBinCumLengths.push(_dSegBinCumLengths);
+            
+            var arrTemp = _dSegBinCumLengths.slice(0, -1).map(num => num / _projLength);
+            arrTemp.push(parseFloat(_dSegBinCumLengths[_dSegBinCumLengths.length - 1]));
+            // calculate percent and push 
+            // divide all but last element by project length
+            aPrjBinCumLengthsPercent.push(arrTemp);
+
+          }
+          let end = Date.now();
+          // elapsed time in milliseconds
+          let elapsed = end - start;
+
+          wR._updateResults();
+        }
+      },
+
+
+      _updateResults: function() {
+        console.log('_updateResults');
+
+        var divProjects = dom.byId("projects");
+          
+        dojo.forEach(dijit.findWidgets(divProjects), function(w) {
+          w.destroyRecursive();
+        });
+        
+        dojo.empty(divProjects);
+        
+        aPrjBinCumLengths.sort((a, b) => {
+          if (b[0] !== a[0]) {
+            return b[0] - a[0];
+          } else if (b[1] !== a[1]) {
+            return b[1] - a[1];
+          } else if (b[2] !== a[2]) {
+            return b[2] - a[2];
+          } else if (b[3] !== a[3]) {
+            return b[3] - a[3];
+          } else if (b[4] !== a[4]) {
+            return b[4] - a[4];
+          } else {
+            return b[5] - a[5];
+          }
+        });
+        
+        aPrjBinCumLengthsPercent.sort((a, b) => {
+          if (b[0] !== a[0]) {
+            return b[0] - a[0];
+          } else if (b[1] !== a[1]) {
+            return b[1] - a[1];
+          } else if (b[2] !== a[2]) {
+            return b[2] - a[2];
+          } else if (b[3] !== a[3]) {
+            return b[3] - a[3];
+          } else if (b[4] !== a[4]) {
+            return b[4] - a[4];
+          } else {
+            return b[5] - a[5];
+          }
+        });
+
+        _ctRank = 1;
+        _ctElements = 1;
+
+        if (curResultSort=='length') {
+          var _aShowResults = aPrjBinCumLengths;
+        } else if (curResultSort=='percent') {
+          var _aShowResults = aPrjBinCumLengthsPercent;
+        }
+        
+        
+        for (p=0; p<_aShowResults.length; p++) {
+
+          if (p>0) {
+
+            // check if same score as previous
+            if (_aShowResults[p].slice(0, -1).every((element, index) => element === _aShowResults[p-1].slice(0, -1)[index])) {
+              // don't do anything since if they have the same scores, they should be the same rank
+            } else {
+              _ctRank = _ctElements;
+            }
+          }
+
+          _ctElements++;
+
+          if (_ctRank<=10) {
+            sBGColor="#ED2024";
+            sFGColor="#FFFFFF";
+          } else if (_ctRank<=25) {
+            sBGColor="#37A949";
+            sFGColor="#FFFFFF";
+          } else if (_ctRank<=50) {
+            sBGColor="#37C2F1";
+            sFGColor="#FFFFFF";
+          } else {
+            sBGColor="";
+            sFGColor="";
+          }
+          
+          var button3 = new Button({ label:String(_ctRank), id:"button_" + String(_aShowResults[p][5])});
+          button3.startup();
+          button3.placeAt(projects);
+          button3.on("click", this._zoomToProject);
+          
+          dojo.style("button_" + _aShowResults[p][5],"width","40px");
+          dojo.style("button_" + _aShowResults[p][5],"height","16px");
+          if (sBGColor!="") {
+            dojo.style("button_" + _aShowResults[p][5],"background",sBGColor);
+          }
+          if (sFGColor!="") {
+            dojo.style("button_" + _aShowResults[p][5],"color",sFGColor);
+          }
+          
+          dojo.place("<div class = \"projectitem\">&nbsp;&nbsp;" + dGIds[parseInt(_aShowResults[p][5])].g + "</div></br>", "projects");
+          
+          //dojo.create("div", { id:, innerHTML: "<p>hi</p>" }, "divResults");
+          
+          //divResults.innerHTML += "</br>";
+          
+          
+        }
+
+        dojo.place("</br></br></br>", "projects");
+    
       },
 
       _updateDisplay: function () {
@@ -333,15 +649,19 @@ define(['dojo/_base/declare',
         for (c in dCats) {
           _curbuf = String(curBuffer);
           _weight = String(curCatWeights[c]);
-          _maxOut = String(curCatMaxOuts[c]);
+          _maxOut = curCatMaxOuts[c];
+          _numChk = curCatNumCheckedLayers[c];
+
           _lyrs = dLyrs.filter(o => o['CategoryCode'] == dCats[c].CategoryCode);
           
+          _divisor = String(Math.min(_numChk, _maxOut));
+
           _scoreExp += "catScore = 0;";
           _scoreExp += "ctLyr    = 0;";
           for (l in _lyrs) {
             if (curCheckedLayers.indexOf(_lyrs[l].LayerCode)>=0) {
-              _scoreExp += "if ($feature." + _lyrs[l].LayerCode + " >= 0 && $feature." + _lyrs[l].LayerCode + " < " + curBuffer + " && ctLyr < " + _maxOut + " && " + _maxOut + ">0) {" +
-                          " catScore +=  " + _weight + " / " + _maxOut + ";" +
+              _scoreExp += "if ($feature." + _lyrs[l].LayerCode + " >= 0 && $feature." + _lyrs[l].LayerCode + " < " + curBuffer + " && ctLyr < " + _maxOut + " && " + _divisor + ">0) {" +
+                          " catScore +=  " + _weight + " / " + _divisor + ";" +
                           " ctLyr += 1;" +
                           "}";
             }
@@ -354,17 +674,17 @@ define(['dojo/_base/declare',
           type: "unique-value",  // autocasts as new UniqueValueRenderer()
           valueExpression: _scoreExp + "" +
             "var score = (totScore) /" + maxScore + ";" +
-            "if      (score>=0.95) { return 'class_5'; }" +
-            "else if (score>=0.85) { return 'class_4'; }" +
-            "else if (score>=0.60) { return 'class_3'; }" +
-            "else if (score>=0.30) { return 'class_2'; }" +
-            "else                  { return 'class_1'; }",
+            "if      (score>=" + String(lstBinLows[0]) + ") { return 'class_5'; }" +
+            "else if (score>=" + String(lstBinLows[1]) + ") { return 'class_4'; }" +
+            "else if (score>=" + String(lstBinLows[2]) + ") { return 'class_3'; }" +
+            "else if (score>=" + String(lstBinLows[3]) + ") { return 'class_2'; }" +
+            "else if (score>=" + String(lstBinLows[4]) + ") { return 'class_1'; }",
           uniqueValueInfos: [
-            { value: "class_5", label: "Most Accessibility (95-100% of Max)" , symbol: new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color("#031273"), 5)},
-            { value: "class_4", label: "High Accessibility (85-95% of Max)"  , symbol: new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color("#2c7fb8"), 4)},
-            { value: "class_3", label: "Middle Accessibility (70-85% of Max)", symbol: new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color("#52c7d5"), 3)},
-            { value: "class_2", label: "Low Accessibility (50-70% of Max)"   , symbol: new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color("#a1dab4"), 2)},
-            { value: "class_1", label: "Least Accessibility (0-50% of Max)"  , symbol: new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color("#ffffcc"), 1)}
+            { value: "class_5", label: String(lstBinLows[0] * 100) +                                 "-100% of Max Score", symbol: new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color(lstYellowToBlue[0]), 5)},
+            { value: "class_4", label: String(lstBinLows[1] * 100) + "-" + String(lstBinLows[0] * 100) + "% of Max Score", symbol: new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color(lstYellowToBlue[1]), 4)},
+            { value: "class_3", label: String(lstBinLows[2] * 100) + "-" + String(lstBinLows[1] * 100) + "% of Max Score", symbol: new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color(lstYellowToBlue[2]), 3)},
+            { value: "class_2", label: String(lstBinLows[3] * 100) + "-" + String(lstBinLows[2] * 100) + "% of Max Score", symbol: new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color(lstYellowToBlue[3]), 2)},
+            { value: "class_1", label: String(lstBinLows[4] * 100) + "-" + String(lstBinLows[3] * 100) + "% of Max Score", symbol: new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color(lstYellowToBlue[4]), 1)}
           ]
 
         });
@@ -440,7 +760,7 @@ define(['dojo/_base/declare',
             //dojo.style(bId,"color",sFGColor);
             
             // category heading
-            dojo.place("<div class = \"grouptitle\" style=\"display:inline\"><p class=\"thicker\" style=\"display:inline\">" + dCats[c].CategoryName + "</div><br/>", "menu");
+            dojo.place("<div class = \"grouptitle\" style=\"display:inline\"><p class=\"thicker\" style=\"display:inline\" id=\"title" + dCats[c].CategoryCode +  "\">" + dCats[c].CategoryName + " <span style=\"color:" + dBlues11fg[10] + "; background-color:" + dBlues11bg[10] + ";\">&nbsp;10&nbsp;</span></div><br/>", "menu");
 
             divCatName = "cat" + dCats[c].CategoryCode
 
@@ -481,6 +801,7 @@ define(['dojo/_base/declare',
               ],
               onChange: function(newValue){
                 console.log("weight onChange");
+                wR._updateCatTitle(this.id.slice(-2),this.value);
                 wR._dirtyQuery();
               }
             }).placeAt(divCatName);
@@ -495,7 +816,7 @@ define(['dojo/_base/declare',
             var selMaxOut = new Select({
               id: "maxout" + dCats[c].CategoryCode,
               onChange: function(newValue){
-                console.log("weight onChange");
+                console.log("maxout onChange");
                 wR._dirtyQuery();
               }
             }).placeAt(divCatName);
@@ -514,43 +835,8 @@ define(['dojo/_base/declare',
 
               dojo.place(_checkbox, divToggle);
 
-//              var checkbox = new CheckBox({
-//                name: "checkbox" + _layers[l].LayerCode,
-//                label: _layers[l].LayerName,
-//                value: "yes",
-//                checked: true,
-//                onChange: function(newValue){
-//                  console.log("Checkbox value: ", newValue);
-//                }
-//              });
-//
-//              domConstruct.place(checkbox.domNode, divToggle);
-//              checkbox.set("label", "SomeName");
-//              
-//              var myToggleButton = new ToggleButton({
-//                checked: true,
-//                iconClass: "dijitCheckBoxIcon",
-//                label: _layers[l].LayerName
-//              }, divToggle);
-//              dojo.place("<br/>", divCatName);
-//
-//              myToggleButton.domNode.style.color = "green"; // Change the background color to red
-//              myToggleButton.domNode.style.border = "0px solid green";
-//              //myToggleButton.domNode.style.fontSize = "12px";
-//              myToggleButton.domNode.style.borderRadius = "0px";
-
               selMaxOut.addOption({ value: String(_numlayers - l), label: String(_numlayers - l) }); // add all options at once as an array
 
-              //new Select({
-              //  name: "select" + _layers[l].LayerCode,
-              //  options: [
-              //    { label: "High"   , value: "1.0000", selected: true },
-              //    { label: "Medium" , value: "0.6667"                 },
-              //    { label: "Low"    , value: "0.3333"                 },
-              //    { label: "Exclude", value: "0.0000"                 }
-              //  ]
-              //}).placeAt(divCatName);
-              //dojo.place('<span">&nbsp;' + _layers[l].LayerName + "</span><br/>", divCatName);
             }
             selMaxOut.set("value",Math.min(4,_numlayers))
             selMaxOut.startup();
@@ -564,49 +850,12 @@ define(['dojo/_base/declare',
           
           wR._dirtyQuery();
         }
-        
 
-        //for (var k = 0; k < 2; k++) {
-        //  
-        //  
-        //  for (var l = 0; l < aResultGroup.length; l++) {
-        //    if (aGroups[j] == aResultGroup[l] && aCategories[k] == aResultCategories[l]) {
-        //        
-        //      if (aResultTiers[l] == 1) {
-        //        sBGColor="#ED2024";
-        //        sFGColor="#FFFFFF";
-        //      } else if (aResultTiers[l] == 2) {
-        //        sBGColor="#37A949";
-        //        sFGColor="#FFFFFF";
-        //      } else if (aResultTiers[l] == 3) {
-        //        sBGColor="#37C2F1";
-        //        sFGColor="#FFFFFF";
-        //      } else {
-        //        sBGColor="#222222";
-        //        sFGColor="#FFFFFF";
-        //      }
-        //      
-        //      var button3 = new Button({ label:aResultRefLabel[l], id:"button_" + aResultRefLabel[l]});
-        //      button3.startup();
-        //      button3.placeAt(divResults);
-        //      button3.on("click", this.ZoomToCorridor);
-        //      
-        //      dojo.style("button_" + aResultRefLabel[l],"width","40px");
-        //      dojo.style("button_" + aResultRefLabel[l],"height","16px");
-        //      dojo.style("button_" + aResultRefLabel[l],"background",sBGColor);
-        //      dojo.style("button_" + aResultRefLabel[l],"color",sFGColor);
-        //      
-        //      dojo.place("<div class = \"corridoritem\">&nbsp;&nbsp;" + aResultNames[l] + "</div></br>", "resultssection");
-        //      
-        //      //dojo.create("div", { id:, innerHTML: "<p>hi</p>" }, "divResults");
-        //      
-        //      //divResults.innerHTML += "</br>";
-        //      
-        //    }
-        //  }
-        //  dojo.place("</br></br></br>", "resultssection");
-        //}
-        
+      },
+
+      _updateCatTitle: function(_c, _w) {
+        console.log('_updateCatTitle');
+        dom.byId('title' + _c).innerHTML = dCats.find(o => o.CategoryCode == _c).CategoryName + ' <span style="color:' + dBlues11fg[parseInt(_w)] + '; background-color:' + dBlues11bg[parseInt(_w)] + ';">&nbsp;' + _w + '&nbsp;</span></small>';
       },
 
       _getCatWeights: function() {
@@ -644,6 +893,22 @@ define(['dojo/_base/declare',
         return _lstCheckedLayers;
       },
 
+      _getCatNumCheckedLayers: function() {
+        console.log('_getCatNumCheckedLayers');
+        var _lstCatNumCheckedLayers = [];
+        for (c in dCats) {
+          ctLyrs = 0;
+          var _layers = dLyrs.filter(o => o['CategoryCode'] == dCats[c].CategoryCode);
+          for (l in _layers) {
+            if (dom.byId('chk' + _layers[l].LayerCode).checked==true) {
+              ctLyrs += 1;
+            }
+          }
+          _lstCatNumCheckedLayers.push(ctLyrs);
+        }
+        return _lstCatNumCheckedLayers;
+      },
+
       _expand: function() {
         console.log('_expand');
 
@@ -664,11 +929,63 @@ define(['dojo/_base/declare',
             divCat.style.display='none';
             myBut.set('label','▶');
           }
-
         }
+      },
 
-
+      _zoomToProject: function() {
+        console.log('_zoomToProject');
+        var _gid = dGIds[this.id.substring(this.id.indexOf("_") + 1)].g;
+        console.log('ID: ' + _gid);
+              
+        queryTask = new esri.tasks.QueryTask(lyrRTPResiliencySegs.url);
         
+        query = new esri.tasks.Query();
+        query.returnGeometry = true;
+        query.outFields = ["*"];
+        query.where = "gis_id = '" + _gid + "'";
+        
+        queryTask.execute(query, showResults);
+        
+        function showResults(featureSet) {
+          
+          var feature, featureId;
+          
+          //QueryTask returns a featureSet.  Loop through features in the featureSet and add them to the map.
+          lyrRTPResiliencySegs.clearSelection();
+          
+          if (featureSet.features[0].geometry.type == "polyline" || featureSet.features[0].geometry.type == "polygon"){ 
+            //clearing any graphics if present. 
+            wR.map.graphics.clear(); 
+            newExtent = new Extent(featureSet.features[0].geometry.getExtent()) 
+              for (i = 0; i < featureSet.features.length; i++) { 
+                var graphic = featureSet.features[i]; 
+                var thisExtent = graphic.geometry.getExtent(); 
+  
+                // making a union of extent or previous feature and current feature. 
+                newExtent = newExtent.union(thisExtent); 
+                //graphic.setSymbol(sfs); 
+                //graphic.setInfoTemplate(popupTemplate); 
+                wR.map.graphics.add(graphic); 
+              } 
+              wR.map.setExtent(newExtent.expand(2)); 
+          }
+          
+          //var queryseg = new Query();  
+          //queryseg.returnGeometry = false;
+          //queryseg.where = "gis_id  = " + featureSet.features[0].attributes[sFN_ID];;
+          //queryseg.outFields = ["*"];
+          //var selectSeg = lyrRTPResiliencySegs_Selected.selectFeatures(queryseg, FeatureLayer.SELECTION_NEW);
+          //wR.map.infoWindow.lineSymbol = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, Color.fromHex(sSelectionColor), 2);
+          //wR.map.infoWindow.setFeatures([selectSeg]);
+          lyrRTPResiliencySegs_Selected.setDefinitionExpression("gis_id IN ('" + _gid + "')");
+          lyrRTPResiliencySegs_Selected.show();
+        }
+      },
+      
+      _changeResultsSort: function() {
+        console.log('_changeResultsSort');
+        curResultSort = document.querySelector('input[name="resultsSort"]:checked').value;
+        wR._updateResults();
       }
 
       // onOpen: function(){

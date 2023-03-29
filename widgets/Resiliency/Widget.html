@@ -86,6 +86,14 @@
     <tr>
       <td width="195px;">
         <p class="thicker">Results</p>
+        Sort by: 
+        <form style="display:inline">
+          <input type="radio" name="resultsSort" value="length" id="rbgResultsSortLength" data-dojo-attach-event="onClick: _changeResultsSort" checked>
+          <label for="rbgResultsSortLength">Length</label>
+          &nbsp;
+          <input type="radio" name="resultsSort" value="percent" id="rbgResultsSortPercent" data-dojo-attach-event="onClick: _changeResultsSort">
+          <label for="rbgResultsSortPercent">Percent</label>
+        </form>
       </td>
       <td valign="right">
         <div id="ATO_Zoom" style="display: flex; justify-content: flex-end"><input type="checkbox" id="chkAutoZoom"
@@ -96,7 +104,7 @@
   </table>
   <table>
     <tr>
-      <td width="20px;">
+      <td width="10px;">
         &nbsp;
       </td>
       <td width="305px;">

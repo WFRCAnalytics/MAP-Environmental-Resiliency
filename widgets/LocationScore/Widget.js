@@ -33,140 +33,111 @@ function(declare, dom, BaseWidget, CheckBox, html, domReady, LayerInfos, Select,
         
         wLS = this;
         this.map.setInfoWindowOnClick(false); // turn off info window (popup) when clicking a feature
-        wLS._updateScores();
+        wLS._updateProjectScore();
     },
 
-    _updateScores: function() {
-        console.log('_updateScores');
-
-        var query = new Query();  
-        query.where = "OBJECTID = " + curParcelPieceUNIQID;
-        query.returnGeometry = false;
-        query.outFields = ["*"];
+    _updateProjectScore: function(_g) {
+        console.log('_updateProjectScore');
         
-        var tblqueryTaskArea = new QueryTask(lyrParcelPieces.url);
-        tblqueryTaskArea.execute(query,showParcelPieceResults);
-        
-        //Segment search results
-        function showParcelPieceResults(results) {
-            console.log('showParcelPieceResults');
-      
-            var resultCount = results.features.length;
-            if (resultCount>0) {
-                  //use first feature only
-                var featureAttributes = results.features[0].attributes;
-  
-                if (dCurCommunities.includes(featureAttributes['CommCode'])) {
-
-                    _scoretable = "<table width=\"100%;\"><tr><td><strong>Layer</strong></td><td align=\"right\"><strong>Score</strong></td><td align=\"right\"><strong>Priority</strong><br/><strong>Weight</strong></td><td align=\"right\"><strong>Weighted</strong></br><strong>Score</strong></td></tr>";
-                    
-                    var _totalweightedscore        = 0;
-                    var _totalweightedscore_places = 0;
-                    var _totalweightedscore_access = 0;
-                    var _totalweightedscore_transp = 0;
-                    var _totalweightedscore_necess = 0;
-
-                    var _communitymaxpossible = maxPossible * 10;
-                    var _communitymaxpossible_places = maxScore_Places * 10;
-                    var _communitymaxpossible_access = maxScore_Access * 10;
-                    var _communitymaxpossible_transp = maxScore_Transp * 10;
-                    var _communitymaxpossible_necess = maxScore_Necess * 10;
-
-                    for (i=0;i<aCategoryWeights.length;i++) {
-                        if (i%2==0) {
-                            _shadetext = ' style="background-color:#DDDDDD"';
-                        } else {
-                            _shadetext ='';
-                        }
-                        var _score = featureAttributes[aCategories[i]] * 10;
-                        var _weight = aCategoryWeights[i];
-                        var _weightedscore = _score * _weight;
-
-                        _totalweightedscore += _weightedscore
-
-                        switch (aCategories_Groups[i]) {
-                            case 'places':
-                                _totalweightedscore_places += _weightedscore; // by definition centers don't overlap, so ok to add since only one should have a value for any given location
-                                break;
-                            case 'access':
-                                _totalweightedscore_access += _weightedscore;
-                                break;
-                            case 'transp':
-                                _totalweightedscore_transp += _weightedscore;
-                                break;
-                            case 'necess':
-                                _totalweightedscore_necess += _weightedscore;
-                                break;
-                        }
-
-                        _scoretable += "<tr" + _shadetext + ">\
-                                        <td>" + aCategories_Names[i] + "</td>\
-                                        <td align=\"right\">" + ((_score        .toFixed(1)!='0.0') ? _score        .toFixed(1) : '0'  ) + "</td>\
-                                        <td align=\"right\">" + ((_weight       .toFixed(1)!='0.0') ? _weight       .toFixed(2) : 'n/a') + "</td>\
-                                        <td align=\"right\">" + ((_weightedscore.toFixed(1)!='0.0') ? _weightedscore.toFixed(1) : '0'  ) + "</td>\
-                                        </tr>";
-                    }
-                    _scoretable += "<tr>\
-                                    <td><strong>Total</strong></td>\
-                                    <td align=\"right\"></td>\
-                                    <td align=\"right\"></td>\
-                                    <td align=\"right\"><strong>" + _totalweightedscore.toFixed(1) + "</strong></td>\
-                                    </tr>";
-                    _scoretable +="</table>"
-                    _scoretable += "<tr><td><br/></td></tr>"
-                    // subcategories
-                    
-                    _scoretable +="<table width=\"100%;\"><tr><td><strong>&nbsp;</strong></td><td align=\"right\"><strong>Places</strong></td><td align=\"right\"><strong>Emp.</strong><br/><strong>Access</strong></td><td><strong>Transp.</strong></td><td align=\"center\"><strong>Comm.</strong><br/><strong>Necess.</strong></td><td align=\"center\"><strong>Total</strong></td></tr>";
-                    
-                    if (dCurCommunities.length==1) {
-                        strCommunityText = dCommunities.find(item=>item.value==dCurCommunities[0]).label
-                    } else {
-                        strCommunityText = "Selected Communities"
-                    }
-
-                    _scoretable += "<tr style=\"background-color:#DDDDDD\">\
-                                    <td><strong>Total Score for Selected Location</strong></td>\
-                                    <td align=\"right\">" + _totalweightedscore_places.toFixed(1) + "</td>\
-                                    <td align=\"right\">" + _totalweightedscore_access.toFixed(1) + "</td>\
-                                    <td align=\"right\">" + _totalweightedscore_transp.toFixed(1) + "</td>\
-                                    <td align=\"right\">" + _totalweightedscore_necess.toFixed(1) + "</td>\
-                                    <td align=\"right\"><strong>" + _totalweightedscore.toFixed(1) + "</strong></td>\
-                                    </tr>";
-                    _scoretable += "<tr>\
-                                    <td><strong>Max Possible for " + strCommunityText + "</strong></td>\
-                                    <td align=\"right\">" + _communitymaxpossible_places.toFixed(1) + "</td>\
-                                    <td align=\"right\">" + _communitymaxpossible_access.toFixed(1) + "</td>\
-                                    <td align=\"right\">" + _communitymaxpossible_transp.toFixed(1) + "</td>\
-                                    <td align=\"right\">" + _communitymaxpossible_necess.toFixed(1) + "</td>\
-                                    <td align=\"right\"><strong>" + _communitymaxpossible.toFixed(1) + "</strong></td>\
-                                    </tr>";
-                    _scoretable += "<tr style=\"background-color:#DDDDDD\">\
-                                    <td><strong>Percent of Max Possible</strong></td>\
-                                    <td align=\"right\">" + (_totalweightedscore_places / _communitymaxpossible_places * 100).toFixed(0) + "%</td>\
-                                    <td align=\"right\">" + (_totalweightedscore_access / _communitymaxpossible_access * 100).toFixed(0) + "%</td>\
-                                    <td align=\"right\">" + (_totalweightedscore_transp / _communitymaxpossible_transp * 100).toFixed(0) + "%</td>\
-                                    <td align=\"right\">" + (_totalweightedscore_necess / _communitymaxpossible_necess * 100).toFixed(0) + "%</td>\
-                                    <td align=\"right\"><strong>" + (_totalweightedscore / _communitymaxpossible * 100).toFixed(0) + "%</strong></td>\
-                                    </tr>";
-                    _scoretable += "</table>"
+        // make sure objects are defined before entering
+        if (typeof dGIds !== "undefined"  && typeof dSegs !== "undefined" && typeof dCats !== "undefined" && typeof dLyrs !== "undefined" && ctCats>0 && ctCats==numCats) {
             
-                    dom.byId("equation").innerHTML = _scoretable;
+            curCheckedLayers       = wR._getListCheckedLayers();
+            curCatWeights          = wR._getCatWeights();
+            curCatMaxOuts          = wR._getCatMaxOuts();
+            curCatNumCheckedLayers = wR._getCatNumCheckedLayers();
+
+            let start = Date.now();
+
+            var _projLength = 0;
+
+            _innerHTML = "<b>Max Score: " + maxScore + "</b>";
+            _innerHTML += "<h1><b>" + _g + " Scores</b></h1>";
+            _innerHTML += "<br/>";
+
+            var _segs = dSegs.filter(o => o['g'] == _g);
+            // loop through all sequences
+            // search for seqs for GIds
+
+            var _dSegBinCumLengths = new Array(lstBinLows.length + 1).fill(0); // add one for the seg index
+
+            _innerHTML += "<table>";
+            _innerHTML += "<tr>";
+            _innerHTML += "<td>Seg</td><td>%Max</td><td>Score</td>";
+            _innerHTML += "<td>" + dCats.map(item => item.CategoryCode).map(item => "<td>" + item + "</td>").join(''); + "</td>"
+            _innerHTML += "</tr>"
+
+            for (var s=0; s<_segs.length; s++) {
+                _segScore = 0;
+                if (s==_segs.length) {
+                    _segLength = segLengthMiles / 2; // assume last segment is 1/2 seg length, since last seg is always a remant... so for random seg length, 1/2 should be average... don't care too much about it, and don't want to slow down processing to get actual length of final segment
                 } else {
-                    dom.byId("equation").innerHTML = 'Location is outside of selected communities.';
+                    _segLength = segLengthMiles;
                 }
-            } else {
-                dom.byId("equation").innerHTML = 'No location selected.';
+
+                _projLength += _segLength;
+
+                var _index = _g + '_' + _segs[s].s;
+
+                var _aCatScores = [];
+
+                for (c in dCats) {
+                    var _withinBuffers = dWithinBuffers[dWithinBuffersIndex.indexOf(dCats[c].CategoryCode)]
+                    var _ctLyrsWithScore = 0;
+                    var _segCatScore = 0;
+
+                    var _divisor = Math.min(curCatMaxOuts[c],curCatNumCheckedLayers[c])
+
+                    if (typeof _withinBuffers !== "undefined") {
+                        var _withinBufferRec = _withinBuffers[_index];
+                        if (typeof _withinBufferRec !== "undefined") {
+                            var _withinLayers = _withinBufferRec[dCats[c].CategoryCode].split(',');
+                            for (_w in _withinLayers) {
+                                if (curCheckedLayers.indexOf(_withinLayers[_w])>=0) {
+                                    if (_ctLyrsWithScore < curCatMaxOuts[c]) {
+                                        _ctLyrsWithScore += 1;
+                                    }
+                                }
+                            }
+                            if (_divisor>0) {
+                                var _segCatScore = _ctLyrsWithScore / _divisor * curCatWeights[c];
+                            }
+                            _segScore += _segCatScore;
+                            
+                        }
+                    }
+
+                    // add distance to correct cummulative bins
+                    for (b in lstBinLows) {
+                        if (_segScorePercentMax >= lstBinLows[b]) {
+                            _dSegBinCumLengths[b] += _segLength;
+                        }
+                    }
+                    _aCatScores.push(_segCatScore);
+                }
+
+                _segScorePercentMax = _segScore / maxScore;
+
+                _innerHTML += "<tr><td align=\"right\">" + _segs[s].s + "</td><td align=\"right\">" + String(Math.round(_segScorePercentMax*100)) + "%</td><td align=\"right\">" + String(_segScore) + "</td><td>" + _aCatScores.map(item => "<td align=\"right\">" + item + "</td>").join(''); + "</td></tr>";
+
+                let end = Date.now();
+                // elapsed time in milliseconds
+                let elapsed = end - start;
+
+                //dom.byId("equation").innerHTML += _dSegBinCumLengths + "<br/>";
             }
+            _innerHTML += "</table>"
+            dom.byId("equation").innerHTML = _innerHTML;
         }
     },
     
     //Run onOpen when receiving a message from OremLayerSymbology
     onReceiveData: function(name, widgetId, data, historyData) {
         //filter out messages
-        if(name !== 'Housing'){
+        if(name !== 'Resiliency'){
             return;
         } else{
-            wLS._updateScores();
+            wLS._updateProjectScore(data.message);
         }
     },
 

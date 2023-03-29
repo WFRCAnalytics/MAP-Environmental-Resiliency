@@ -435,100 +435,6 @@ define(['dojo/_base/declare',
         }
       },
 
-
-      _getProjectScore: function() {
-        console.log('_scoreProjects');
-        
-        // make sure objects are defined before entering
-        if (typeof dGIds !== "undefined"  && typeof dSegs !== "undefined" && typeof dCats !== "undefined" && typeof dLyrs !== "undefined" && ctCats>0 && ctCats==numCats) {
-          
-          curCheckedLayers       = wR._getListCheckedLayers();
-          curCatWeights          = wR._getCatWeights();
-          curCatMaxOuts          = wR._getCatMaxOuts();
-          curCatNumCheckedLayers = wR._getCatNumCheckedLayers();
-
-          let start = Date.now();
-
-          aPrjBinCumLengths        = [];
-          aPrjBinCumLengthsPercent = [];
-
-          // loop through all gis_ids
-          for (g in dGIds) {
-            var _projLength = 0;
-            var _segs = dSegs.filter(o => o['g'] == dGIds[g].g);
-            // loop through all sequences
-            // search for seqs for GIds
-
-            var _dSegBinCumLengths = new Array(lstBinLows.length + 1).fill(0); // add one for the seg index
-
-            for (var s=0; s<_segs.length; s++) {
-              _segScore = 0;
-              if (s==_segs.length) {
-                _segLength = segLengthMiles / 2; // assume last segment is 1/2 seg length, since last seg is always a remant... so for random seg length, 1/2 should be average... don't care too much about it, and don't want to slow down processing to get actual length of final segment
-              } else {
-                _segLength = segLengthMiles;
-              }
-
-              _projLength += _segLength;
-
-              var _index = dGIds[g].g + '_' + _segs[s].s;
-              for (c in dCats) {
-                var _withinBuffers = dWithinBuffers[dWithinBuffersIndex.indexOf(dCats[c].CategoryCode)]
-                var _ctLyrsWithScore = 0;
-                var _segCatScore = 0;
-
-                var _divisor = Math.min(curCatMaxOuts[c],curCatNumCheckedLayers[c])
-
-                if (typeof _withinBuffers !== "undefined") {
-                  var _withinBufferRec = _withinBuffers[_index];
-                  if (typeof _withinBufferRec !== "undefined") {
-                    var _withinLayers = _withinBufferRec[dCats[c].CategoryCode].split(',');
-                    for (_w in _withinLayers) {
-                      if (curCheckedLayers.indexOf(_withinLayers[_w])>=0) {
-                        if (_ctLyrsWithScore < curCatMaxOuts[c]) {
-                          _ctLyrsWithScore += 1;
-                        }
-                      }
-                    }
-                    if (_divisor>0) {
-                      var _segCatScore = _ctLyrsWithScore / _divisor * curCatWeights[c];
-                    }
-                    _segScore += _segCatScore;
-                  }
-                }
-              }
-              _segScorePercentMax = _segScore / maxScore;
-
-              // add distance to correct cummulative bins
-              for (b in lstBinLows) {
-                if (_segScorePercentMax >= lstBinLows[b]) {
-                  _dSegBinCumLengths[b] += _segLength;
-                }
-              }
-
-            }
-            // add seg index
-            _dSegBinCumLengths[_dSegBinCumLengths.length - 1] = g;
-
-            // push seg bin lengths to array
-            aPrjBinCumLengths.push(_dSegBinCumLengths);
-            
-            var arrTemp = _dSegBinCumLengths.slice(0, -1).map(num => num / _projLength);
-            arrTemp.push(parseFloat(_dSegBinCumLengths[_dSegBinCumLengths.length - 1]));
-            // calculate percent and push 
-            // divide all but last element by project length
-            aPrjBinCumLengthsPercent.push(arrTemp);
-
-          }
-          let end = Date.now();
-          // elapsed time in milliseconds
-          let elapsed = end - start;
-
-          wR._updateResults();
-        }
-      },
-
-
       _updateResults: function() {
         console.log('_updateResults');
 
@@ -613,7 +519,7 @@ define(['dojo/_base/declare',
           var button3 = new Button({ label:String(_ctRank), id:"button_" + String(_aShowResults[p][5])});
           button3.startup();
           button3.placeAt(projects);
-          button3.on("click", this._zoomToProject);
+          button3.on("click", this._zoomToProjectAndShowScore);
           
           dojo.style("button_" + _aShowResults[p][5],"width","40px");
           dojo.style("button_" + _aShowResults[p][5],"height","16px");
@@ -760,7 +666,7 @@ define(['dojo/_base/declare',
             //dojo.style(bId,"color",sFGColor);
             
             // category heading
-            dojo.place("<div class = \"grouptitle\" style=\"display:inline\"><p class=\"thicker\" style=\"display:inline\" id=\"title" + dCats[c].CategoryCode +  "\">" + dCats[c].CategoryName + " <span style=\"color:" + dBlues11fg[10] + "; background-color:" + dBlues11bg[10] + ";\">&nbsp;10&nbsp;</span></div><br/>", "menu");
+            dojo.place("<div class = \"grouptitle\"><p class=\"thicker\" style=\"display:inline\" id=\"title" + dCats[c].CategoryCode +  "\">" + dCats[c].CategoryName + " <span style=\"color:" + dBlues11fg[10] + "; background-color:" + dBlues11bg[10] + ";\">&nbsp;10&nbsp;</span></div><br/>", "menu");
 
             divCatName = "cat" + dCats[c].CategoryCode
 
@@ -932,8 +838,8 @@ define(['dojo/_base/declare',
         }
       },
 
-      _zoomToProject: function() {
-        console.log('_zoomToProject');
+      _zoomToProjectAndShowScore: function() {
+        console.log('_zoomToProjectAndShowScore');
         var _gid = dGIds[this.id.substring(this.id.indexOf("_") + 1)].g;
         console.log('ID: ' + _gid);
               
@@ -980,6 +886,24 @@ define(['dojo/_base/declare',
           lyrRTPResiliencySegs_Selected.setDefinitionExpression("gis_id IN ('" + _gid + "')");
           lyrRTPResiliencySegs_Selected.show();
         }
+
+        // Open scoring widget
+        var pm = PanelManager.getInstance();
+
+        //Close Segment Widget if open
+        //for (var p=0; p < pm.panels.length; p++) {
+        //    if (pm.panels[p].label == sSegWidgetLabel) {
+        //        pm.closePanel(pm.panels[p]);
+        //      }
+        //}
+
+        //Open scoring widget
+        pm.showPanel(wR.appConfig.widgetPool.widgets[WIDGETPOOLID_SCORE]);
+
+        // show score
+        wR.publishData({
+          message: _gid
+        });
       },
       
       _changeResultsSort: function() {

@@ -1,3 +1,16 @@
+.my-dropdown {
+  -webkit-appearance: none; /* Remove default styles on Safari/Chrome */
+  -moz-appearance: none; /* Remove default styles on Firefox */
+  appearance: none; /* Remove default styles on other browsers */
+  background-color: "#000000"; /* Set the background color to transparent */
+  border: none; /* Remove the border */
+  outline: none; /* Remove the outline */
+  padding: 2px; /* Remove any padding */
+  margin: 0; /* Remove any margin */
+  text-align: center;
+  display: inline;
+}
+
 .inline-button {
   display: inline-block;
 }
@@ -11,11 +24,24 @@
   overflow: hidden;
 }
 
-.categorylist {
-  width: 320px;
-  padding: 10px;
+.score {
+  width: 30px;
+  display: inline;
+  padding: 2px;
+}
+
+.categorytitle {
+  width:100%;
+  max-width: 255px;
+  text-overflow:ellipsis;
+  overflow: hidden;
+  padding-top: 10px;
+  padding: 5px;
   white-space: nowrap;
-  overflow: auto;
+  font-weight: 900;
+	font-size: 115%;
+  display: inline-block;/* center the div horizontally */
+  /*background-color: #eeeee; /* set a background color to see the white space */
 }
 
 .projectitem {
@@ -28,9 +54,11 @@
 }
 
 .grouptitle{
+  font-weight: 900;
+	font-size: 120%;
   height: 20px;
-  width: 100%;
-  display: inline-block;
+  width: 100px;
+  display: inline;
   text-overflow:ellipsis;
   overflow: hidden;
 }
@@ -197,12 +225,14 @@ table.resultstable {
 	border-collapse:collapse;
 }
 
-//table.resultstable tr:nth-child(odd) td{
-//        background:#ccc;
-//}
-//table.resultstable tr:nth-child(even) td{
-//        background:#fff;
-//}
+/*
+table.resultstable tr:nth-child(odd) td{
+        background:#ccc;
+}
+table.resultstable tr:nth-child(even) td{
+        background:#fff;
+}
+*/
 
 br {
   display: block;

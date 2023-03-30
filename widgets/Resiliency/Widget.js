@@ -39,7 +39,7 @@ var maxScore = 0; // max score of all segments... used for calculating bins and 
 
 //https://colors.artyclick.com/color-names-dictionary/color-names/light-navy-blue-color#:~:text=The%20color%20Light%20Navy%20Blue%20corresponds%20to%20the%20hex%20code%20%232E5A88.
 var dBlues11bg = ["#FFFFFF","#DFE8F1","#C2D3E4","#A7BED7","#8EABC9","#7798BC","#6287AF","#4E76A1","#3D6794","#2D5987","#2D5987"]
-var dBlues11fg = ["#2D5987","#2D5987","#2D5987","#FFFFFF","#FFFFFF","#FFFFFF","#FFFFFF","#DFE8F1","#DFE8F1","#DFE8F1","#DFE8F1"]
+var dBlues11fg = ["#2D5987","#2D5987","#2D5987","#2D5987","#FFFFFF","#FFFFFF","#DFE8F1","#DFE8F1","#DFE8F1","#DFE8F1","#DFE8F1"]
 
 define(['dojo/_base/declare',
   'dojo/dom',
@@ -210,6 +210,24 @@ define(['dojo/_base/declare',
         });
         lyrRTPResiliencySegs.setRenderer(vcUVRenderer);
         lyrRTPResiliencySegs_Selected.hide();
+
+        //Close Location Score if open
+        var pm = PanelManager.getInstance();
+        for (var p = 0; p < pm.panels.length; p++) {
+          if (pm.panels[p].label == 'Location Score') {
+            pm.closePanel(pm.panels[p]);
+          }
+        }
+
+        
+        var divProjects = dom.byId("projects");
+          
+        dojo.forEach(dijit.findWidgets(divProjects), function(w) {
+          w.destroyRecursive();
+        });
+        
+        dojo.empty(divProjects);
+
       },
 
       _updateBuffer: function() {
@@ -261,10 +279,10 @@ define(['dojo/_base/declare',
       _showLegend: function () {
         var pm = PanelManager.getInstance();
         pm.showPanel(wR.appConfig.widgetPool.widgets[WIDGETPOOLID_LEGEND]);
-        //Close Location Scores if open
+        //Close Location Score if open
         var pm = PanelManager.getInstance();
         for (var p = 0; p < pm.panels.length; p++) {
-          if (pm.panels[p].label == 'Location Scores') {
+          if (pm.panels[p].label == 'Location Score') {
             pm.closePanel(pm.panels[p]);
           }
         }
@@ -275,8 +293,11 @@ define(['dojo/_base/declare',
 
         maxScore = 0;
 
-        // make sure objects are defined before entering
         if (typeof dGIds !== "undefined"  && typeof dSegs !== "undefined" && typeof dCats !== "undefined" && typeof dLyrs !== "undefined" && ctCats>0 && ctCats==numCats) {
+          // change button color and text
+        // change button color and text
+          dom.byId('btnCalculateScores').style.backgroundColor = "orange";
+          dom.byId('btnCalculateScores').innerHTML = "Running Query...";
           
           curCheckedLayers       = wR._getListCheckedLayers();
           curCatWeights          = wR._getCatWeights();
@@ -337,10 +358,15 @@ define(['dojo/_base/declare',
           dom.byId('btnCalculateScores').style.backgroundColor = "green";
           dom.byId('btnCalculateScores').innerHTML = "Query Complete";
 
+          // Get a reference to the document body
+          var body = document.getElementsByTagName("body")[0];
+
+          // return mouse to default
+          body.style.cursor = "default";
+
           // score the projects based on max score
           wR._scoreProjects();
         }
-        // get the end time
       },
 
       _scoreProjects: function() {
@@ -536,6 +562,7 @@ define(['dojo/_base/declare',
           
           //divResults.innerHTML += "</br>";
           
+          // Change the cursor back to its default style
           
         }
 
@@ -602,14 +629,14 @@ define(['dojo/_base/declare',
       onReceiveData: function (name, widgetId, data, historyData) {
         //filter out messages
         if (name == 'Location Score') {
-          if (data.message == 'remove_location') {
-            if (bLocationGraphic) {
-              // should only be one graphic in addition to communities at a time (community borders and selection)
-              // so remove the last
-              wR.map.graphics.remove(wR.map.graphics.graphics[wR.map.graphics.graphics.length - 1]);
-              bLocationGraphic = false;
-            }
-          }
+          //if (data.message == 'remove_location') {
+          //  if (bLocationGraphic) {
+          //    // should only be one graphic in addition to communities at a time (community borders and selection)
+          //    // so remove the last
+          //    wR.map.graphics.remove(wR.map.graphics.graphics[wR.map.graphics.graphics.length - 1]);
+          //    bLocationGraphic = false;
+          //  }
+          //}
           return;
         }
       },
@@ -646,16 +673,23 @@ define(['dojo/_base/declare',
           
           dojo.empty(divMenu);
 
+          dojo.place("<hr/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Category&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Weight<hr/>", "menu");
+
           for (c in dCats) {
 
-            dojo.place("<br/>", "menu");
+
+            divCatTitleContainerName = "catContainer" + dCats[c].CategoryCode
+
+            var divCatTitleContainer = domConstruct.create("span",{id:divCatTitleContainerName});
+
+            divMenu.appendChild(divCatTitleContainer);
 
             bId = "button" + dCats[c].CategoryCode;
 
             var button3 = new Button({ label:'▶', id:bId, style:"display:inline"});
 
             button3.startup();
-            button3.placeAt(divMenu);
+            button3.placeAt(divCatTitleContainer);
             button3.on("click", this._expand);
 
             dojo.style(bId,"width","18px");
@@ -666,7 +700,35 @@ define(['dojo/_base/declare',
             //dojo.style(bId,"color",sFGColor);
             
             // category heading
-            dojo.place("<div class = \"grouptitle\"><p class=\"thicker\" style=\"display:inline\" id=\"title" + dCats[c].CategoryCode +  "\">" + dCats[c].CategoryName + " <span style=\"color:" + dBlues11fg[10] + "; background-color:" + dBlues11bg[10] + ";\">&nbsp;10&nbsp;</span></div><br/>", "menu");
+            dojo.place("<span class = \"categorytitle\" id=\"title" + dCats[c].CategoryCode +  "\">" + dCats[c].CategoryName + "</div>", divCatTitleContainerName);
+            
+            // Create a new select element
+            var mySelect = document.createElement("select");
+
+            for (var i = 10; i>=0; i--) {
+              // Add options to the select element
+              var option = document.createElement("option");
+              option.text = String(i);
+              option.style.backgroundColor = dBlues11bg[i];
+              option.style.color           = dBlues11fg[i];
+              mySelect.add(option);
+            }
+            mySelect.value = "10";
+
+            mySelect.classList.add("my-dropdown");
+            mySelect.id = "selectWeight" + dCats[c].CategoryCode;
+            mySelect.style.backgroundColor = dBlues11bg[10];
+            mySelect.style.color           = dBlues11fg[10];
+
+            mySelect.addEventListener("change", function() {
+              console.log("weight onChange");
+              wR._updateCatTitle(this.id.slice(-2),this.value);
+              wR._dirtyQuery();
+            });
+
+            // Append the select element to an existing element on the page
+            var myDiv = document.getElementById("menu");
+            myDiv.appendChild(mySelect);
 
             divCatName = "cat" + dCats[c].CategoryCode
 
@@ -676,6 +738,7 @@ define(['dojo/_base/declare',
 
             divMenu.appendChild(divCat);
 
+
             // layers div
             dojo.place("<div style=\"display: none;\" id=\"div" + dCats[c].CategoryCode +  "\"", divCatName);
 
@@ -683,34 +746,36 @@ define(['dojo/_base/declare',
             //dojo.place("<span style=\"display: flex; justify-content: flex-end\">Weight:&nbsp;</span>", divCatName);
             
             // weight heading
-            dojo.place("<span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<small>Weight</small>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<small>Max Out #</small></span>", divCatName);
+            dojo.place("<span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<small>Max Out #</small></span>", divCatName);
             dojo.place("<br/>", divCatName);
 
 
-            dojo.place("<span>&nbsp;&nbsp;<b>Layer</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>", divCatName);
+            dojo.place("<span>&nbsp;&nbsp;&nbsp;&nbsp;<b>Layer</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>", divCatName);
 
+            dojo.place("<br/>", "menu");
 
-            var selWeight = new Select({
-              id: "weight" + dCats[c].CategoryCode,
-              options: [
-                { label: "10", value: "10", selected: true },
-                { label: "9" , value: "9"                  },
-                { label: "8" , value: "8"                  },
-                { label: "7" , value: "7"                  },
-                { label: "6" , value: "6"                  },
-                { label: "5" , value: "5"                  },
-                { label: "4" , value: "4"                  },
-                { label: "3" , value: "3"                  },
-                { label: "2" , value: "2"                  },
-                { label: "1" , value: "1"                  },
-                { label: "0" , value: "0"                  }
-              ],
-              onChange: function(newValue){
-                console.log("weight onChange");
-                wR._updateCatTitle(this.id.slice(-2),this.value);
-                wR._dirtyQuery();
-              }
-            }).placeAt(divCatName);
+            //var selWeight = new Select({
+            //  id: "selectWeight" + dCats[c].CategoryCode,
+            //  options: [
+            //    { label: "10", value: "10", selected: true },
+            //    { label: "9" , value: "9"                  },
+            //    { label: "8" , value: "8"                  },
+            //    { label: "7" , value: "7"                  },
+            //    { label: "6" , value: "6"                  },
+            //    { label: "5" , value: "5"                  },
+            //    { label: "4" , value: "4"                  },
+            //    { label: "3" , value: "3"                  },
+            //    { label: "2" , value: "2"                  },
+            //    { label: "1" , value: "1"                  },
+            //    { label: "0" , value: "0"                  }
+            //  ],
+            //  class: "my-dropdown",
+            //  onChange: function(newValue){
+            //    console.log("weight onChange");
+            //    wR._updateCatTitle(this.id.slice(-2),this.value);
+            //    wR._dirtyQuery();
+            //  }
+            //}).placeAt(divCatName);
 
 
             _layers = dLyrs.filter(o => o['CategoryCode'] == dCats[c].CategoryCode);
@@ -761,15 +826,18 @@ define(['dojo/_base/declare',
 
       _updateCatTitle: function(_c, _w) {
         console.log('_updateCatTitle');
-        dom.byId('title' + _c).innerHTML = dCats.find(o => o.CategoryCode == _c).CategoryName + ' <span style="color:' + dBlues11fg[parseInt(_w)] + '; background-color:' + dBlues11bg[parseInt(_w)] + ';">&nbsp;' + _w + '&nbsp;</span></small>';
+        var mySelectById = document.getElementById('selectWeight' + _c);
+        mySelectById.style.backgroundColor = dBlues11bg[parseInt(_w)];
+        mySelectById.style.color           = dBlues11fg[parseInt(_w)];
+        mySelectById.value = _w;
       },
 
       _getCatWeights: function() {
         console.log('_getCatWeights');
         var _lstCatWeights = [];
         for (c in dCats) {
-          var wd = dom.byId('weight' + dCats[c].CategoryCode);
-          _lstCatWeights.push(parseInt(wd.textContent));
+          var wd = dom.byId('selectWeight' + dCats[c].CategoryCode);
+          _lstCatWeights.push(parseInt(wd.value));
         }
         return _lstCatWeights;
       },

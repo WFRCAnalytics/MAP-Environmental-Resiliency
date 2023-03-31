@@ -211,10 +211,10 @@ define(['dojo/_base/declare',
         lyrRTPResiliencySegs.setRenderer(vcUVRenderer);
         lyrRTPResiliencySegs_Selected.hide();
 
-        //Close Location Score if open
+        //Close Location Scores if open
         var pm = PanelManager.getInstance();
         for (var p = 0; p < pm.panels.length; p++) {
-          if (pm.panels[p].label == 'Location Score') {
+          if (pm.panels[p].label == 'Location Scores') {
             pm.closePanel(pm.panels[p]);
           }
         }
@@ -279,10 +279,10 @@ define(['dojo/_base/declare',
       _showLegend: function () {
         var pm = PanelManager.getInstance();
         pm.showPanel(wR.appConfig.widgetPool.widgets[WIDGETPOOLID_LEGEND]);
-        //Close Location Score if open
+        //Close Location Scores if open
         var pm = PanelManager.getInstance();
         for (var p = 0; p < pm.panels.length; p++) {
-          if (pm.panels[p].label == 'Location Score') {
+          if (pm.panels[p].label == 'Location Scores') {
             pm.closePanel(pm.panels[p]);
           }
         }
@@ -291,14 +291,18 @@ define(['dojo/_base/declare',
       _calculateScores: function() {
         console.log('_calculateScores');
 
+        //dom.byId('btnCalculateScores').style.backgroundColor = "orange";
+        //dom.byId('btnCalculateScores').innerHTML = "Running Query...";
+
+
+        //window.getComputedStyle(registry.byId('btnCalculateScores').domNode).getPropertyValue("opacity");
+        
         maxScore = 0;
 
         if (typeof dGIds !== "undefined"  && typeof dSegs !== "undefined" && typeof dCats !== "undefined" && typeof dLyrs !== "undefined" && ctCats>0 && ctCats==numCats) {
           // change button color and text
         // change button color and text
-          dom.byId('btnCalculateScores').style.backgroundColor = "orange";
-          dom.byId('btnCalculateScores').innerHTML = "Running Query...";
-          
+
           curCheckedLayers       = wR._getListCheckedLayers();
           curCatWeights          = wR._getCatWeights();
           curCatMaxOuts          = wR._getCatMaxOuts();
@@ -357,12 +361,6 @@ define(['dojo/_base/declare',
           // change button color and text
           dom.byId('btnCalculateScores').style.backgroundColor = "green";
           dom.byId('btnCalculateScores').innerHTML = "Query Complete";
-
-          // Get a reference to the document body
-          var body = document.getElementsByTagName("body")[0];
-
-          // return mouse to default
-          body.style.cursor = "default";
 
           // score the projects based on max score
           wR._scoreProjects();
@@ -556,7 +554,7 @@ define(['dojo/_base/declare',
             dojo.style("button_" + _aShowResults[p][5],"color",sFGColor);
           }
           
-          dojo.place("<div class = \"projectitem\">&nbsp;&nbsp;" + dGIds[parseInt(_aShowResults[p][5])].g + "</div></br>", "projects");
+          dojo.place("<div class = \"projectitem\">&nbsp;&nbsp;" + dGIds[parseInt(_aShowResults[p][5])].g + " " + aPrjBinCumLengths[p] + "</div></br>", "projects");
           
           //dojo.create("div", { id:, innerHTML: "<p>hi</p>" }, "divResults");
           
@@ -678,18 +676,28 @@ define(['dojo/_base/declare',
           for (c in dCats) {
 
 
-            divCatTitleContainerName = "catContainer" + dCats[c].CategoryCode
+            divCatHeaderName = "catContainer" + dCats[c].CategoryCode
+            var divCatHeader = domConstruct.create("div",{id:divCatHeaderName, class:"container"});
+            divMenu.appendChild(divCatHeader);
 
-            var divCatTitleContainer = domConstruct.create("span",{id:divCatTitleContainerName});
+            divCatExpandButtonName = "catExpandButton" + dCats[c].CategoryCode
+            var divCatExpandButton = domConstruct.create("div",{id:divCatExpandButtonName, class:"first"});
+            divCatHeader.appendChild(divCatExpandButton);
 
-            divMenu.appendChild(divCatTitleContainer);
+            divCatTitleName = "catTitle" + dCats[c].CategoryCode
+            var divCatTitle = domConstruct.create("div",{id:divCatTitleName, class:"static"});
+            divCatHeader.appendChild(divCatTitle);
+
+            divCatWeightName = "catWeight" + dCats[c].CategoryCode
+            var divCatWeight = domConstruct.create("div",{id:divCatWeightName, class:"third"});
+            divCatHeader.appendChild(divCatWeight);
 
             bId = "button" + dCats[c].CategoryCode;
 
             var button3 = new Button({ label:'▶', id:bId, style:"display:inline"});
 
             button3.startup();
-            button3.placeAt(divCatTitleContainer);
+            button3.placeAt(divCatExpandButton);
             button3.on("click", this._expand);
 
             dojo.style(bId,"width","18px");
@@ -700,7 +708,7 @@ define(['dojo/_base/declare',
             //dojo.style(bId,"color",sFGColor);
             
             // category heading
-            dojo.place("<span class = \"categorytitle\" id=\"title" + dCats[c].CategoryCode +  "\">" + dCats[c].CategoryName + "</div>", divCatTitleContainerName);
+            dojo.place("<div id=\"title" + dCats[c].CategoryCode +  "\">" + dCats[c].CategoryName + "</div>", divCatTitleName);
             
             // Create a new select element
             var mySelect = document.createElement("select");
@@ -727,15 +735,13 @@ define(['dojo/_base/declare',
             });
 
             // Append the select element to an existing element on the page
-            var myDiv = document.getElementById("menu");
-            myDiv.appendChild(mySelect);
+            //var myDiv = document.getElementById("menu");
+            divCatWeight.appendChild(mySelect);
 
             divCatName = "cat" + dCats[c].CategoryCode
 
             var divCat = domConstruct.create("div",{id:divCatName});
-
             divCat.style.display='none';
-
             divMenu.appendChild(divCat);
 
 
@@ -752,8 +758,7 @@ define(['dojo/_base/declare',
 
             dojo.place("<span>&nbsp;&nbsp;&nbsp;&nbsp;<b>Layer</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>", divCatName);
 
-            dojo.place("<br/>", "menu");
-
+            
             //var selWeight = new Select({
             //  id: "selectWeight" + dCats[c].CategoryCode,
             //  options: [
@@ -813,6 +818,8 @@ define(['dojo/_base/declare',
             selMaxOut.startup();
           }
           
+          dojo.place("<br/>", divCatName);
+
           for (l in dLyrs) {
             dom.byId('chk' + dLyrs[l].LayerCode).onchange = function(){
               wR._dirtyQuery();

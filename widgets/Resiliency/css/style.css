@@ -1,3 +1,48 @@
+
+.container {
+  display:-webkit-box;
+  -webkit-box-orient:horizontal;
+  -webkit-box-align:stretch; 
+   display:-moz-box;      
+  -moz-box-orient:horizontal;
+  -moz-box-align:stretch;
+  display:box;
+  box-orient:horizontal;
+  box-align:stretch;
+  height: 28px;
+}    
+
+div {
+  height: auto;
+}
+
+.first {
+  background-color: transparent;   
+}
+
+.static {
+  background-color: transparent;
+  width: 250px;
+  text-overflow:ellipsis;
+  overflow: hidden;
+  padding: 5px;
+  white-space: nowrap;
+  font-weight: 900;
+	font-size: 115%;
+}
+
+.third {
+  background-color: transparent;   
+}
+
+.first, .third {
+  -webkit-box-flex:1.0;
+  -moz-box-flex:1.0;
+  box-flex:1.0;
+}
+​
+
+
 .my-dropdown {
   -webkit-appearance: none; /* Remove default styles on Safari/Chrome */
   -moz-appearance: none; /* Remove default styles on Firefox */
@@ -30,16 +75,22 @@
   padding: 2px;
 }
 
+.categorycontainer {
+  height: 80px;
+  max-width: 100px;
+  text-overflow:ellipsis;
+  overflow: hidden;
+}
+
 .categorytitle {
   width:100%;
   max-width: 255px;
   text-overflow:ellipsis;
   overflow: hidden;
-  padding-top: 10px;
   padding: 5px;
   white-space: nowrap;
   font-weight: 900;
-	font-size: 115%;
+	font-size: 120%;
   display: inline-block;/* center the div horizontally */
   /*background-color: #eeeee; /* set a background color to see the white space */
 }

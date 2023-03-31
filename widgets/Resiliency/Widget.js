@@ -67,8 +67,9 @@ define(['dojo/_base/declare',
   'esri/Color',
   'jimu/PanelManager',
   'esri/graphic',
-  'dojo/store/Memory'],
-  function (declare, dom, domStyle, domConstruct, on, registry, BaseWidget, CheckBox, html, domReady, FeatureLayer, LayerInfos, ToggleButton, Select, Button, ComboBox, Query, QueryTask, Extent, UniqueValueRenderer, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol, Color, PanelManager, Graphic, Memory) {
+  'dojo/store/Memory',
+  'dijit/ProgressBar'],
+  function (declare, dom, domStyle, domConstruct, on, registry, BaseWidget, CheckBox, html, domReady, FeatureLayer, LayerInfos, ToggleButton, Select, Button, ComboBox, Query, QueryTask, Extent, UniqueValueRenderer, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol, Color, PanelManager, Graphic, Memory, ProgressBar) {
     //To create a widget, you need to derive from BaseWidget.
     return declare([BaseWidget], {
       // Custom widget code goes here
@@ -111,6 +112,7 @@ define(['dojo/_base/declare',
 
         // set current buffer
         dom.byId('bufferText').value = curBuffer;
+        
 
         // Populate gisids object
         dojo.xhrGet({
@@ -211,6 +213,10 @@ define(['dojo/_base/declare',
         lyrRTPResiliencySegs.setRenderer(vcUVRenderer);
         lyrRTPResiliencySegs_Selected.hide();
 
+        if (typeof progressBar !== "undefined") {
+          progressBar.destroyRecursive();
+        }
+
         //Close Location Scores if open
         var pm = PanelManager.getInstance();
         for (var p = 0; p < pm.panels.length; p++) {
@@ -288,11 +294,17 @@ define(['dojo/_base/declare',
         }
       },
 
+      //repeatOften: function() {
+      //  // Do whatever
+      //  requestAnimationFrame(wR.repeatOften());
+      //},
+
       _calculateScores: function() {
         console.log('_calculateScores');
 
-        //dom.byId('btnCalculateScores').style.backgroundColor = "orange";
-        //dom.byId('btnCalculateScores').innerHTML = "Running Query...";
+
+        dom.byId('btnCalculateScores').style.backgroundColor = "orange";
+        dom.byId('btnCalculateScores').innerHTML = "Running Query...";
 
 
         //window.getComputedStyle(registry.byId('btnCalculateScores').domNode).getPropertyValue("opacity");
@@ -309,9 +321,20 @@ define(['dojo/_base/declare',
           curCatNumCheckedLayers = wR._getCatNumCheckedLayers();
 
           let start = Date.now();
-
+          
+          // Create a new progress bar widget and add it to the widget's container
+          progressBar = new ProgressBar({
+            value: 0,
+            maximum: 100
+          }, "divProgressBarContainer");
+    
           // loop through all gis_ids
           for (g in dGIds) {
+            progressBar.set('value', (g / (dGIds.length -1)) * 100);
+
+            //wR.requestAnimationFrame(wR.repeatOften());
+
+            //window.requestAnimationFrame();
             var _segs = dSegs.filter(o => o['g'] == dGIds[g].g);
             // loop through all sequences
             // search for seqs for GIds
@@ -361,6 +384,10 @@ define(['dojo/_base/declare',
           // change button color and text
           dom.byId('btnCalculateScores').style.backgroundColor = "green";
           dom.byId('btnCalculateScores').innerHTML = "Query Complete";
+
+          if (typeof progressBar !== "undefined") {
+            progressBar.destroyRecursive();
+          }
 
           // score the projects based on max score
           wR._scoreProjects();

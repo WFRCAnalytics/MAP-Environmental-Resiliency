@@ -1,4 +1,4 @@
-var sRTPResiliencySegs = 'RTP Resiliency Segments';
+var sRTPResiliencySegs = 'Environmental Risk';
 var sRTPResiliencySegs_Selected = 'RTP Resiliency Projects - Lines';
 
 // bins for scoring based on percent of max and bins for coloring layers
@@ -37,6 +37,8 @@ var segScores = [];
 
 var maxScore = 0; // max score of all segments... used for calculating bins and percentages, which are all relative to max
 
+var curOpacity = 0.85;
+
 //https://colors.artyclick.com/color-names-dictionary/color-names/light-navy-blue-color#:~:text=The%20color%20Light%20Navy%20Blue%20corresponds%20to%20the%20hex%20code%20%232E5A88.
 var dBlues11bg = ["#FFFFFF","#DFE8F1","#C2D3E4","#A7BED7","#8EABC9","#7798BC","#6287AF","#4E76A1","#3D6794","#2D5987","#2D5987"]
 var dBlues11fg = ["#2D5987","#2D5987","#2D5987","#2D5987","#FFFFFF","#FFFFFF","#DFE8F1","#DFE8F1","#DFE8F1","#DFE8F1","#DFE8F1"]
@@ -57,6 +59,7 @@ define(['dojo/_base/declare',
   'dijit/form/Select',
   'dijit/form/Button',
   'dijit/form/ComboBox',
+  'dijit/form/HorizontalSlider',
   'esri/tasks/query',
   'esri/tasks/QueryTask',
   'esri/geometry/Extent',
@@ -69,7 +72,7 @@ define(['dojo/_base/declare',
   'esri/graphic',
   'dojo/store/Memory',
   'dijit/ProgressBar'],
-  function (declare, dom, domStyle, domConstruct, on, registry, BaseWidget, CheckBox, html, domReady, FeatureLayer, LayerInfos, ToggleButton, Select, Button, ComboBox, Query, QueryTask, Extent, UniqueValueRenderer, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol, Color, PanelManager, Graphic, Memory, ProgressBar) {
+  function (declare, dom, domStyle, domConstruct, on, registry, BaseWidget, CheckBox, html, domReady, FeatureLayer, LayerInfos, ToggleButton, Select, Button, ComboBox, HorizontalSlider, Query, QueryTask, Extent, UniqueValueRenderer, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol, Color, PanelManager, Graphic, Memory, ProgressBar) {
     //To create a widget, you need to derive from BaseWidget.
     return declare([BaseWidget], {
       // Custom widget code goes here
@@ -198,6 +201,26 @@ define(['dojo/_base/declare',
         function selectParcelPiece(evt) {
           console.log('selectParcelPiece');
         }
+
+
+        var horizSlider = new HorizontalSlider({
+          minimum: 0,
+          maximum: 1,
+          discreteValues: 21,
+          value: curOpacity,
+          intermediateChanges: true,
+          onChange: function(){
+            console.log(this.value);
+            curOpacity = this.value;
+            dom.byId("opa").innerHTML = ((curOpacity)*100).toFixed(0) + "%"
+            wR._updateLayerDisplay();
+          }
+        }, "horizSlider");
+
+        // Start up the widget
+        dom.byId("opa").innerHTML = ((curOpacity)*100).toFixed(0) + "%"
+        horizSlider.startup();
+
       },
 
       _dirtyQuery: function() {
@@ -647,6 +670,7 @@ define(['dojo/_base/declare',
 
         });
         lyrRTPResiliencySegs.setRenderer(vcUVRenderer);
+        lyrRTPResiliencySegs.show();
 
       },
 
@@ -680,6 +704,7 @@ define(['dojo/_base/declare',
             dom.byId(turnoffall).innerHTML = 'Uncheck All';
           }
         }
+        wR._updateLayerDisplay();
       },
 
 
@@ -758,6 +783,7 @@ define(['dojo/_base/declare',
             mySelect.addEventListener("change", function() {
               console.log("weight onChange");
               wR._updateCatTitle(this.id.slice(-2),this.value);
+              wR._updateLayerDisplay();
               wR._dirtyQuery();
             });
 
@@ -779,11 +805,8 @@ define(['dojo/_base/declare',
             //dojo.place("<span style=\"display: flex; justify-content: flex-end\">Weight:&nbsp;</span>", divCatName);
             
             // weight heading
-            dojo.place("<span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<small>Max Out #</small></span>", divCatName);
-            dojo.place("<br/>", divCatName);
-
-
-            dojo.place("<span>&nbsp;&nbsp;&nbsp;&nbsp;<b>Layer</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>", divCatName);
+            //dojo.place("<br/>", divCatName);
+            dojo.place("<span>&nbsp;&nbsp;&nbsp;&nbsp;<b>Layer</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<small><b>Max Out #:</b></small>&nbsp;</span>", divCatName);
 
             
             //var selWeight = new Select({
@@ -820,6 +843,7 @@ define(['dojo/_base/declare',
               id: "maxout" + dCats[c].CategoryCode,
               onChange: function(newValue){
                 console.log("maxout onChange");
+                wR._updateLayerDisplay();
                 wR._dirtyQuery();
               }
             }).placeAt(divCatName);
@@ -831,25 +855,22 @@ define(['dojo/_base/declare',
               //dojo.place("<p style=\"display:inline\">&nbsp;&nbsp;</p>", divCatName);
               
               var divToggle = domConstruct.create("div",{id:"toggle" + _layers[l].LayerCode});
-  
               divCat.appendChild(divToggle);
-
-              var _checkbox = "<span>&nbsp;&nbsp;&nbsp;&nbsp;<input type=\"checkbox\" id=\"chk" + _layers[l].LayerCode + "\" checked data-dojo-type=\"dijit/form/CheckBox\"> <label for=\"chk" + _layers[l].LayerCode + "\">" + _layers[l].LayerName + "</label></span><br/>";
-
+              var _checkbox = "<span>&nbsp;&nbsp;&nbsp;&nbsp;<input type=\"checkbox\" id=\"chk" + _layers[l].LayerCode + "\" checked data-dojo-type=\"dijit/form/CheckBox\"> <label for=\"chk" + _layers[l].LayerCode + "\">" + _layers[l].ListName + "</label></span><br/>";
               dojo.place(_checkbox, divToggle);
-
               selMaxOut.addOption({ value: String(_numlayers - l), label: String(_numlayers - l) }); // add all options at once as an array
-
             }
+
             selMaxOut.set("value",Math.min(4,_numlayers))
             selMaxOut.startup();
+
+            dojo.place("<br/>", divCatName)
           }
-          
-          dojo.place("<br/>", divCatName);
 
           for (l in dLyrs) {
             dom.byId('chk' + dLyrs[l].LayerCode).onchange = function(){
               wR._dirtyQuery();
+              wR._updateLayerDisplay();
             };
           }
           
@@ -915,6 +936,38 @@ define(['dojo/_base/declare',
           _lstCatNumCheckedLayers.push(ctLyrs);
         }
         return _lstCatNumCheckedLayers;
+      },
+
+      _updateLayerDisplay: function() {
+        console.log('_updateLayerDisplay');
+
+        curCheckedLayers       = wR._getListCheckedLayers();
+        curCatWeights          = wR._getCatWeights();
+        curCatMaxOuts          = wR._getCatMaxOuts();
+        curCatNumCheckedLayers = wR._getCatNumCheckedLayers();
+
+        var layerInfosObject = LayerInfos.getInstanceSync();
+        
+        for (c in dCats) {
+          ctLyrs = 0;
+          var _layers = dLyrs.filter(o => o['CategoryCode'] == dCats[c].CategoryCode);
+          for (l in _layers) {
+            for (var j = 0, jl = layerInfosObject._layerInfos.length; j < jl; j++) {
+              var currentLayerInfo = layerInfosObject._layerInfos[j];
+              if (currentLayerInfo.title == _layers[l].LayerName) {
+                var _lyr = layerInfosObject._layerInfos[j].layerObject;
+                if (dom.byId('chk' + _layers[l].LayerCode).checked==true) {
+                  var _checktolimit = Math.min(curCatNumCheckedLayers[c], curCatMaxOuts[c])
+                  var _opacity = curOpacity * (1 / _checktolimit) * (curCatWeights[c] / 10);  
+                  _lyr.setOpacity(_opacity)
+                  _lyr.show();
+                } else {
+                  _lyr.hide();
+                }
+              }
+            }
+          }
+        }
       },
 
       _expand: function() {

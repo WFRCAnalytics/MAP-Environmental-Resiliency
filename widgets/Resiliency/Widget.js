@@ -33,6 +33,8 @@ var dWithinBuffersIndex = [];
 var curCheckedLayers = [];
 var curCatWeights = [];
 var curCatNumCheckedLayers = [];
+
+var aProjSegCatLength_Weighted = [];
 var segScores = [];
 
 var maxScore = 0; // max score of all segments... used for calculating bins and percentages, which are all relative to max
@@ -351,11 +353,15 @@ define(['dojo/_base/declare',
             maximum: 100
           }, "divProgressBarContainer");
     
+          aProjSegCatLength_Weighted = [];
+
           // loop through all gis_ids
           for (g in dGIds) {
             progressBar.set('value', (g / (dGIds.length -1)) * 100);
 
             //wR.requestAnimationFrame(wR.repeatOften());
+
+            _segCatLength_Weighted = new Array(dCats.length).fill(0);
 
             //window.requestAnimationFrame();
             var _segs = dSegs.filter(o => o['g'] == dGIds[g].g);
@@ -379,6 +385,7 @@ define(['dojo/_base/declare',
                       if (curCheckedLayers.indexOf(_withinLayers[_w])>=0) {
                         if (_ctLyrsWithScore < curCatMaxOuts[c]) {
                           _ctLyrsWithScore += 1;
+                          _segCatLength_Weighted[c] +=  segLengthMiles / _divisor;
                         }
                       }
                     }
@@ -391,6 +398,7 @@ define(['dojo/_base/declare',
               }
               maxScore = Math.max(maxScore,_segScore);
             }
+            aProjSegCatLength_Weighted.push(_segCatLength_Weighted);
           }
           let end = Date.now();
           // elapsed time in milliseconds

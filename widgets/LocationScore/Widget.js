@@ -51,7 +51,7 @@ function(declare, dom, BaseWidget, CheckBox, html, domReady, LayerInfos, Select,
 
             var _projLength = 0;
 
-            _innerHTML = "<b>Max Score: " + maxScore + "</b>";
+            _innerHTML = "<b>Max Score: " + maxScore.toFixed(1) + "</b>";
             _innerHTML += "<h1><b>" + _g + " Scores</b></h1>";
             _innerHTML += "<br/>";
 
@@ -118,7 +118,7 @@ function(declare, dom, BaseWidget, CheckBox, html, domReady, LayerInfos, Select,
 
                 _segScorePercentMax = _segScore / maxScore;
 
-                _innerHTML += "<tr><td align=\"right\">" + _segs[s].s + "</td><td align=\"right\">" + String(Math.round(_segScorePercentMax*100)) + "%</td><td align=\"right\">" + String(_segScore) + "</td><td>" + _aCatScores.map(item => "<td align=\"right\">" + item + "</td>").join(''); + "</td></tr>";
+                _innerHTML += "<tr><td align=\"right\">" + _segs[s].s + "</td><td align=\"right\">" + String(Math.round(_segScorePercentMax*100)) + "%</td><td align=\"right\">" + String(_segScore.toFixed(1)) + "</td><td><small>" + _aCatScores.map(item => "<td align=\"right\">" + item.toFixed(1) + "</small></td>").join(''); + "</td></tr>";
 
                 let end = Date.now();
                 // elapsed time in milliseconds

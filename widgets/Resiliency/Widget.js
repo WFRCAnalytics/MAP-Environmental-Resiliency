@@ -34,7 +34,7 @@ var curCheckedLayers = [];
 var curCatWeights = [];
 var curCatNumCheckedLayers = [];
 
-var aProjSegCatLength_Weighted = [];
+var aPrjCatLength_Weighted = [];
 var segScores = [];
 
 var maxScore = 0; // max score of all segments... used for calculating bins and percentages, which are all relative to max
@@ -353,7 +353,7 @@ define(['dojo/_base/declare',
             maximum: 100
           }, "divProgressBarContainer");
     
-          aProjSegCatLength_Weighted = [];
+          aPrjCatLength_Weighted = [];
 
           // loop through all gis_ids
           for (g in dGIds) {
@@ -361,7 +361,7 @@ define(['dojo/_base/declare',
 
             //wR.requestAnimationFrame(wR.repeatOften());
 
-            _segCatLength_Weighted = new Array(dCats.length).fill(0);
+            _catLength_Weighted = new Array(dCats.length).fill(0);
 
             //window.requestAnimationFrame();
             var _segs = dSegs.filter(o => o['g'] == dGIds[g].g);
@@ -385,7 +385,7 @@ define(['dojo/_base/declare',
                       if (curCheckedLayers.indexOf(_withinLayers[_w])>=0) {
                         if (_ctLyrsWithScore < curCatMaxOuts[c]) {
                           _ctLyrsWithScore += 1;
-                          _segCatLength_Weighted[c] +=  segLengthMiles / _divisor;
+                          _catLength_Weighted[c] +=  segLengthMiles / _divisor;
                         }
                       }
                     }
@@ -398,7 +398,7 @@ define(['dojo/_base/declare',
               }
               maxScore = Math.max(maxScore,_segScore);
             }
-            aProjSegCatLength_Weighted.push(_segCatLength_Weighted);
+            aPrjCatLength_Weighted.push(_catLength_Weighted);
           }
           let end = Date.now();
           // elapsed time in milliseconds
@@ -564,18 +564,18 @@ define(['dojo/_base/declare',
         _ctElements = 1;
 
         if (curResultSort=='length') {
-          var _aShowResults = aPrjBinCumLengths;
+          var _aSortProjects = aPrjBinCumLengths;
         } else if (curResultSort=='percent') {
-          var _aShowResults = aPrjBinCumLengthsPercent;
+          var _aSortProjects = aPrjBinCumLengthsPercent;
         }
         
         
-        for (p=0; p<_aShowResults.length; p++) {
+        for (p=0; p<_aSortProjects.length; p++) {
 
           if (p>0) {
 
             // check if same score as previous
-            if (_aShowResults[p].slice(0, -1).every((element, index) => element === _aShowResults[p-1].slice(0, -1)[index])) {
+            if (_aSortProjects[p].slice(0, -1).every((element, index) => element === _aSortProjects[p-1].slice(0, -1)[index])) {
               // don't do anything since if they have the same scores, they should be the same rank
             } else {
               _ctRank = _ctElements;
@@ -598,21 +598,25 @@ define(['dojo/_base/declare',
             sFGColor="";
           }
           
-          var button3 = new Button({ label:String(_ctRank), id:"button_" + String(_aShowResults[p][5])});
+          var button3 = new Button({ label:String(_ctRank), id:"button_" + String(_aSortProjects[p][5])});
           button3.startup();
           button3.placeAt(projects);
           button3.on("click", this._zoomToProjectAndShowScore);
           
-          dojo.style("button_" + _aShowResults[p][5],"width","40px");
-          dojo.style("button_" + _aShowResults[p][5],"height","16px");
+          dojo.style("button_" + _aSortProjects[p][5],"width","40px");
+          dojo.style("button_" + _aSortProjects[p][5],"height","16px");
           if (sBGColor!="") {
-            dojo.style("button_" + _aShowResults[p][5],"background",sBGColor);
+            dojo.style("button_" + _aSortProjects[p][5],"background",sBGColor);
           }
           if (sFGColor!="") {
-            dojo.style("button_" + _aShowResults[p][5],"color",sFGColor);
+            dojo.style("button_" + _aSortProjects[p][5],"color",sFGColor);
           }
           
-          dojo.place("<div class = \"projectitem\">&nbsp;&nbsp;" + dGIds[parseInt(_aShowResults[p][5])].g + " " + aPrjBinCumLengths[p] + "</div></br>", "projects");
+          _gID = dGIds[parseInt(_aSortProjects[p][5])].g;
+          // get proj category lengths
+          _gIndex = dGIds.findIndex(obj => obj.g==_gID)
+
+          dojo.place("<div class = \"projectitem\">&nbsp;&nbsp;" + _gID + " <small>" + aPrjCatLength_Weighted[_gIndex].map(ele => ele.toFixed(1)) + "</small></div></br>", "projects");
           
           //dojo.create("div", { id:, innerHTML: "<p>hi</p>" }, "divResults");
           

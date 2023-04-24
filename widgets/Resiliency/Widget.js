@@ -5,14 +5,14 @@ var sRTPResiliencySegs_Selected = 'RTP Resiliency Projects - Lines';
 var lstBinLows      = [0.95     , 0.85     , 0.60     , 0.30     , 0.00     ];
 var lstYellowToBlue = ["#031273", "#2c7fb8", "#52c7d5", "#a1dab4", "#ffffcc"];
 
+var curMode   = "AT"
+var curType   = 'lines'
 var curBuffer = 100; // default buffer
 var curResultSort = 'length';
 var segLengthMiles = 0.125; // from the data prep notebook
 
 var jsonCats = 'widgets/Resiliency/data/cats.json'
 var jsonLyrs = 'widgets/Resiliency/data/lyrs.json'
-var jsonSegs = 'widgets/Resiliency/data/segs.json'
-var jsonGIds = 'widgets/Resiliency/data/gids.json'
 var jsonWithinBufferFolder = 'widgets/Resiliency/data/within_buffers/'
 
 var WIDGETPOOLID_LEGEND = 0;
@@ -100,56 +100,15 @@ define(['dojo/_base/declare',
         wR = this;
         //this.map.setInfoWindowOnClick(false); // turn off info window (popup) when clicking a feature
 
-        // Initialize Selection Layer, FromLayer, and ToLayer and define selection colors
-        var layerInfosObject = LayerInfos.getInstanceSync();
-        for (var j = 0, jl = layerInfosObject._layerInfos.length; j < jl; j++) {
-          var currentLayerInfo = layerInfosObject._layerInfos[j];
-          if (currentLayerInfo.title == sRTPResiliencySegs) {
-            lyrRTPResiliencySegs = layerInfosObject._layerInfos[j].layerObject;
-            console.log(sRTPResiliencySegs + ' Found');
-          } else if (currentLayerInfo.title == sRTPResiliencySegs_Selected) {
-            lyrRTPResiliencySegs_Selected = layerInfosObject._layerInfos[j].layerObject;
-            lyrRTPResiliencySegs_Selected.setDefinitionExpression("GIS_ID IN ('NONE')");
-            lyrRTPResiliencySegs_Selected.show();
-            console.log(sRTPResiliencySegs_Selected + ' Found');
-          }
-        }
+        wR.getDisplayLayer();
 
         // set current buffer
         dom.byId('bufferText').value = curBuffer;
-        
+        dom.byId('prjMode').value = curMode;
+        dom.byId('prjType').value = curType;
 
-        // Populate gisids object
-        dojo.xhrGet({
-          url: jsonGIds,
-          handleAs: "json",
-          load: function (obj) {
-            /* here, obj will already be a JS object deserialized from the JSON response */
-            console.log(jsonGIds);
-            dGIds = obj.data;
-            wR._dirtyQuery();
-          },
-          error: function (err) {
-            /* this will execute if the response couldn't be converted to a JS object,
-               or if the request was unsuccessful altogether. */
-          }
-        });
-
-        // Populate categories object
-        dojo.xhrGet({
-          url: jsonSegs,
-          handleAs: "json",
-          load: function (obj) {
-            /* here, obj will already be a JS object deserialized from the JSON response */
-            console.log(jsonSegs);
-            dSegs = obj.data;
-            wR._dirtyQuery();
-          },
-          error: function (err) {
-            /* this will execute if the response couldn't be converted to a JS object,
-               or if the request was unsuccessful altogether. */
-          }
-        });
+        wR._getPrjModeJson();
+        wR._getPrjTypeJson();
 
         // Populate categories object
         dojo.xhrGet({
@@ -261,10 +220,78 @@ define(['dojo/_base/declare',
 
       },
 
+      _getDisplayLayer: function() {
+        console.log('_getDisplayLayer');
+        // Initialize Selection Layer, FromLayer, and ToLayer and define selection colors
+        var layerInfosObject = LayerInfos.getInstanceSync();
+        for (var j = 0, jl = layerInfosObject._layerInfos.length; j < jl; j++) {
+          var currentLayerInfo = layerInfosObject._layerInfos[j];
+          if (currentLayerInfo.title == sRTPResiliencySegs) {
+            lyrRTPResiliencySegs = layerInfosObject._layerInfos[j].layerObject;
+            console.log(sRTPResiliencySegs + ' Found');
+          } else if (currentLayerInfo.title == sRTPResiliencySegs_Selected) {
+            lyrRTPResiliencySegs_Selected = layerInfosObject._layerInfos[j].layerObject;
+            lyrRTPResiliencySegs_Selected.setDefinitionExpression("GIS_ID IN ('NONE')");
+            lyrRTPResiliencySegs_Selected.show();
+            console.log(sRTPResiliencySegs_Selected + ' Found');
+          }
+        }
+      },
+
       _updateBuffer: function() {
         console.log('_updateBuffer');
         curBuffer = parseInt(dom.byId('bufferText').value);
         wR._readWithinCurBuffer();
+      },
+
+      _updatePrjMode: function() {
+        console.log('_updatePrjMode');
+        curMode = dom.byId('prjMode');
+        wR._dirtyQuery();
+      },
+
+      _updatePrjType: function() {
+        console.log('_updatePrjType');
+        curBuffer = dom.byId('prjType');
+        wR._dirtyQuery();
+      },
+
+      _getPrjModeJson: function() {
+        // Populate gisids object
+        dojo.xhrGet({
+          url: 'widgets/Resiliency/data/' + curMode + '_' + curType + '_gids.json',
+          handleAs: "json",
+          load: function (obj) {
+            /* here, obj will already be a JS object deserialized from the JSON response */
+            console.log(jsonGIds);
+            dGIds = obj.data;
+            wR._dirtyQuery();
+            wR._readWithinBuffers();
+          },
+          error: function (err) {
+            /* this will execute if the response couldn't be converted to a JS object,
+                or if the request was unsuccessful altogether. */
+          }
+        });
+      },
+
+      _getPrjTypeJson: function() {
+        // Populate categories object
+        dojo.xhrGet({
+          url:  'widgets/Resiliency/data/' + curMode + '_' + curType + '_segs.json',
+          handleAs: "json",
+          load: function (obj) {
+            /* here, obj will already be a JS object deserialized from the JSON response */
+            console.log(jsonSegs);
+            dSegs = obj.data;
+            wR._dirtyQuery();
+            wR._readWithinCurBuffer();
+          },
+          error: function (err) {
+            /* this will execute if the response couldn't be converted to a JS object,
+                or if the request was unsuccessful altogether. */
+          }
+        });
       },
 
       _readWithinCurBuffer: function() {
@@ -284,7 +311,7 @@ define(['dojo/_base/declare',
         // Populate distances object
         dojo.xhrGet({
           // get next layer code
-          url: jsonWithinBufferFolder + 'b' + parseInt(_buf) + '_' + _cat + '.json',
+          url: jsonWithinBufferFolder + curMode + '_' + curType + '_b' + parseInt(_buf) + '_' + _cat + '.json',
           handleAs: "json",
           load: function (obj) {
             console.log(this.url);
@@ -1015,7 +1042,7 @@ define(['dojo/_base/declare',
         query = new esri.tasks.Query();
         query.returnGeometry = true;
         query.outFields = ["*"];
-        query.where = "gis_id = '" + _gid + "'";
+        query.where = "GIS_ID = '" + _gid + "'";
         
         queryTask.execute(query, showResults);
         
@@ -1050,7 +1077,7 @@ define(['dojo/_base/declare',
           //var selectSeg = lyrRTPResiliencySegs_Selected.selectFeatures(queryseg, FeatureLayer.SELECTION_NEW);
           //wR.map.infoWindow.lineSymbol = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, Color.fromHex(sSelectionColor), 2);
           //wR.map.infoWindow.setFeatures([selectSeg]);
-          lyrRTPResiliencySegs_Selected.setDefinitionExpression("gis_id IN ('" + _gid + "')");
+          lyrRTPResiliencySegs_Selected.setDefinitionExpression("GIS_ID IN ('" + _gid + "')");
           lyrRTPResiliencySegs_Selected.show();
         }
 

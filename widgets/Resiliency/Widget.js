@@ -5,7 +5,7 @@ var sRTPResiliencySegs_Selected = 'RTP Resiliency Projects - Lines';
 var lstBinLows      = [0.95     , 0.85     , 0.60     , 0.30     , 0.00     ];
 var lstYellowToBlue = ["#031273", "#2c7fb8", "#52c7d5", "#a1dab4", "#ffffcc"];
 
-var curBuffer = 300; // default buffer
+var curBuffer = 100; // default buffer
 var curResultSort = 'length';
 var segLengthMiles = 0.125; // from the data prep notebook
 

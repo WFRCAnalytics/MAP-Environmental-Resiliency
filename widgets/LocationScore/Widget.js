@@ -32,13 +32,13 @@ function(declare, dom, BaseWidget, CheckBox, html, domReady, LayerInfos, Select,
         console.log('startup');
         
         wLS = this;
-        this.map.setInfoWindowOnClick(false); // turn off info window (popup) when clicking a feature
-        wLS._updateProjectScore();
+        //this.map.setInfoWindowOnClick(false); // turn off info window (popup) when clicking a feature
+        //wLS._updateProjectScore();
 
                 
         var panel = this.getPanel();
         var pos = panel.position;
-        pos.width = 500;
+        pos.width = 420;
         panel.setPosition(pos);
         panel.panelManager.normalizePanel(panel);
 
@@ -59,8 +59,9 @@ function(declare, dom, BaseWidget, CheckBox, html, domReady, LayerInfos, Select,
 
             var _projLength = 0;
 
+            var _n     = dGIds[parseInt(dGIds.findIndex(obj => obj.g==_g))].n;
             _innerHTML = "<b>Max Score: " + maxScore.toFixed(1) + "</b>";
-            _innerHTML += "<h1><b>" + _g + " Scores</b></h1>";
+            _innerHTML += "<h1><b>" + _n + " Scores</b></h1>";
             _innerHTML += "<br/>";
 
             var _segs = dSegs.filter(o => o['g'] == _g);
@@ -69,13 +70,15 @@ function(declare, dom, BaseWidget, CheckBox, html, domReady, LayerInfos, Select,
 
             var _dSegBinCumLengths = new Array(lstBinLows.length + 1).fill(0); // add one for the seg index
 
-            _innerHTML += "<table>";
-            _innerHTML += "<tr>";
-            _innerHTML += "<td>Seg</td><td>%Max</td><td>Score</td>";
-            _innerHTML += "<td>" + dCats.map(item => item.CategoryCode).map(item => "<td>" + item + "</td>").join(''); + "</td>"
-            _innerHTML += "</tr>"
+            _innerHTML += "<table width=100%>";
 
             for (var s=0; s<_segs.length; s++) {
+                // header row repeated every 30 rows
+                if (s % 30 === 0) {
+                    _innerHTML += "<tr>";
+                    _innerHTML += "<td><b>Seg</b></td><td><b>%Max</b></td><td><b>Score</b></td>";
+                    _innerHTML += "<td>" + dCats.map(item => item.CategoryCode).map(item => "<td align=\"center\"><b>" + item + "</b></td>").join(''); + "</td>"
+                    _innerHTML += "</tr>"                }
                 _segScore = 0;
                 if (s==_segs.length) {
                     _segLength = segLengthMiles / 2; // assume last segment is 1/2 seg length, since last seg is always a remant... so for random seg length, 1/2 should be average... don't care too much about it, and don't want to slow down processing to get actual length of final segment
@@ -126,7 +129,7 @@ function(declare, dom, BaseWidget, CheckBox, html, domReady, LayerInfos, Select,
 
                 _segScorePercentMax = _segScore / maxScore;
 
-                _innerHTML += "<tr><td align=\"right\">" + _segs[s].s + "</td><td align=\"right\">" + String(Math.round(_segScorePercentMax*100)) + "%</td><td align=\"right\">" + String(_segScore.toFixed(1)) + "</td><td><small>" + _aCatScores.map(item => "<td align=\"right\">" + item.toFixed(1) + "</small></td>").join(''); + "</td></tr>";
+                _innerHTML += "<tr><td align=\"right\">" + _segs[s].s + "</td><td align=\"right\">" + String(Math.round(_segScorePercentMax*100)) + "%</td><td align=\"right\">" + String(_segScore.toFixed(1)) + "</td><td><small>" + _aCatScores.map(item => "<td align=\"right\">" + item.toFixed(1).replace('0.0', '-').replace('.0', '').replace('1-', '10') + "</small></td>").join(''); + "</td></tr>";
 
                 let end = Date.now();
                 // elapsed time in milliseconds

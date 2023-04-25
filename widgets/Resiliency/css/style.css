@@ -95,10 +95,16 @@ div {
   /*background-color: #eeeee; /* set a background color to see the white space */
 }
 
+.projectList {
+  width: 320px;
+  padding: 10px;
+  white-space: nowrap;
+  overflow: auto;
+}
+
 .projectitem {
   width: 250px;
-  /*display: inline-block;*/
-  display: inline;
+  display: inline-block;
   vertical-align: middle;
   text-overflow:ellipsis;
   overflow: hidden;

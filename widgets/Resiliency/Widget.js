@@ -44,7 +44,7 @@ var segScores = [];
 
 var maxScore = 0; // max score of all segments... used for calculating bins and percentages, which are all relative to max
 
-var curOpacity = 0.85;
+var curOpacity = 0.55;
 
 //https://colors.artyclick.com/color-names-dictionary/color-names/light-navy-blue-color#:~:text=The%20color%20Light%20Navy%20Blue%20corresponds%20to%20the%20hex%20code%20%232E5A88.
 var dBlues11bg = ["#FFFFFF","#DFE8F1","#C2D3E4","#A7BED7","#8EABC9","#7798BC","#6287AF","#4E76A1","#3D6794","#2D5987","#2D5987"]
@@ -114,7 +114,7 @@ define(['dojo/_base/declare',
             console.log(sRTPResiliencySegs + ' Found');
           } else if (currentLayerInfo.title == sRTPResiliencySegs_Selected) {
             lyrRTPResiliencySegs_Selected = layerInfosObject._layerInfos[j].layerObject;
-            lyrRTPResiliencySegs_Selected.setDefinitionExpression("GIS_ID IN ('NONE')");
+            lyrRTPResiliencySegs_Selected.setDefinitionExpression("GIS_ID='NONE'");
             lyrRTPResiliencySegs_Selected.show();
             console.log(sRTPResiliencySegs_Selected + ' Found');
           } else if (currentLayerInfo.title == sRTPResiliencyPnts) {
@@ -122,7 +122,7 @@ define(['dojo/_base/declare',
             console.log(lyrRTPResiliencyPnts + ' Found');
           } else if (currentLayerInfo.title == sRTPResiliencyPnts_Selected) {
             lyrRTPResiliencyPnts_Selected = layerInfosObject._layerInfos[j].layerObject;
-            lyrRTPResiliencyPnts_Selected.setDefinitionExpression("GIS_ID IN ('NONE')");
+            lyrRTPResiliencyPnts_Selected.setDefinitionExpression("GIS_ID='NONE'");
             lyrRTPResiliencyPnts_Selected.show();
             console.log(sRTPResiliencyPnts_Selected + ' Found');
           }
@@ -247,21 +247,23 @@ define(['dojo/_base/declare',
           type: "unique-value",  // autocasts as new UniqueValueRenderer()
           valueExpression: "return 'class_0';",
           uniqueValueInfos: [
-            { value: "class_0", label: "No Results"  , symbol: new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color("#dcdcdc"), 0.5)}
+            { value: "class_0", label: "No Results"  , symbol: new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color("#dcdcdc"), 0.25)}
           ]
         });
         lyrRTPResiliencySegs.setRenderer(vcUVRenderer_seg);
-        lyrRTPResiliencySegs_Selected.hide();
+        lyrRTPResiliencySegs_Selected.setDefinitionExpression("GIS_ID='NONE'");
+        lyrRTPResiliencySegs_Selected.refresh();
 
         var vcUVRenderer_pnt = new UniqueValueRenderer({
           type: "unique-value",  // autocasts as new UniqueValueRenderer()
           valueExpression: "return 'class_0';",
           uniqueValueInfos: [
-            { value: "class_0", label: "No Results"  , symbol: new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 12, new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([255,255,255]), 1), new Color("#dcdcdc"))}
+            { value: "class_0", label: "No Results"  , symbol: new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 1, new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([255,255,255]), 1), new Color("#dcdcdc"))}
           ]
         });
         lyrRTPResiliencyPnts.setRenderer(vcUVRenderer_pnt);
-        lyrRTPResiliencyPnts_Selected.hide();
+        lyrRTPResiliencyPnts_Selected.setDefinitionExpression("GIS_ID='NONE'");
+        lyrRTPResiliencyPnts_Selected.refresh();
 
         if (typeof progressBar !== "undefined") {
           progressBar.destroyRecursive();
@@ -289,6 +291,19 @@ define(['dojo/_base/declare',
       _updateFltrMode: function() {
         console.log('_updateFltrMode');
         fltrMode = dom.byId('fltrMode').value;
+        if (fltrMode!='All') {
+          lyrRTPResiliencySegs.setDefinitionExpression("MODE='" + fltrMode + "'")
+          lyrRTPResiliencyPnts.setDefinitionExpression("MODE='" + fltrMode + "'")
+          lyrRTPResiliencySegs.show()
+          lyrRTPResiliencyPnts.show()
+          wR._updateResults();
+        } else {
+          lyrRTPResiliencySegs.setDefinitionExpression("")
+          lyrRTPResiliencyPnts.setDefinitionExpression("")
+          lyrRTPResiliencySegs.show()
+          lyrRTPResiliencyPnts.show()
+          wR._updateResults();
+        }
       },
 
       _updateBuffer: function() {
@@ -598,8 +613,9 @@ define(['dojo/_base/declare',
         } else if (curResultSort=='percent') {
           var _aSortProjects = aPrjBinCumLengthsPercent;
         }
-        
-        
+
+        dojo.place("<hr\><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Rank&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Project Name</b><hr\>", "projects");
+
         for (p=0; p<_aSortProjects.length; p++) {
 
           if (p>0) {
@@ -614,40 +630,47 @@ define(['dojo/_base/declare',
 
           _ctElements++;
 
-          if (_ctRank<=10) {
-            sBGColor="#ED2024";
-            sFGColor="#FFFFFF";
-          } else if (_ctRank<=25) {
-            sBGColor="#37A949";
-            sFGColor="#FFFFFF";
-          } else if (_ctRank<=50) {
-            sBGColor="#37C2F1";
-            sFGColor="#FFFFFF";
-          } else {
-            sBGColor="";
-            sFGColor="";
-          }
+          //if (_ctRank<=10) {
+          //  sBGColor="#ED2024";
+          //  sFGColor="#FFFFFF";
+          //} else if (_ctRank<=25) {
+          //  sBGColor="#37A949";
+          //  sFGColor="#FFFFFF";
+          //} else if (_ctRank<=50) {
+          //  sBGColor="#37C2F1";
+          //  sFGColor="#FFFFFF";
+          //} else {
+          //  sBGColor="";
+          //  sFGColor="";
+          //}
           
-          var button3 = new Button({ label:String(_ctRank), id:"button_" + String(_aSortProjects[p][5])});
-          button3.startup();
-          button3.placeAt(projects);
-          button3.on("click", this._zoomToProjectAndShowScore);
-          
-          dojo.style("button_" + _aSortProjects[p][5],"width","40px");
-          dojo.style("button_" + _aSortProjects[p][5],"height","16px");
-          if (sBGColor!="") {
-            dojo.style("button_" + _aSortProjects[p][5],"background",sBGColor);
-          }
-          if (sFGColor!="") {
-            dojo.style("button_" + _aSortProjects[p][5],"color",sFGColor);
-          }
-          
-          _gID = dGIds[parseInt(_aSortProjects[p][5])].g;
-          // get proj category lengths
-          _gIndex = dGIds.findIndex(obj => obj.g==_gID)
+          _gID     = dGIds[parseInt(_aSortProjects[p][5])].g;
+          _prjName = dGIds[parseInt(_aSortProjects[p][5])].n;
+          _gIndex  = dGIds.findIndex(obj => obj.g==_gID)
 
-          dojo.place("<div class = \"projectitem\">&nbsp;&nbsp;" + _gID + " <small>" + aPrjCatLength_Weighted[_gIndex].map(ele => ele.toFixed(1)) + "</small></div></br>", "projects");
-          
+          // check if project is in fltrMode
+          if (fltrMode=='All' | dGIds.find(o => o['g'] == _gID).m == fltrMode) {
+            
+            var button3 = new Button({ label:String(_ctRank), id:"button_" + String(_aSortProjects[p][5])});
+            button3.startup();
+            button3.placeAt(projects);
+            button3.on("click", this._zoomToProjectAndShowScore);
+            
+            dojo.style("button_" + _aSortProjects[p][5],"width","40px");
+            dojo.style("button_" + _aSortProjects[p][5],"height","16px");
+            //if (sBGColor!="") {
+            //  dojo.style("button_" + _aSortProjects[p][5],"background",sBGColor);
+            //}
+            //if (sFGColor!="") {
+            //  dojo.style("button_" + _aSortProjects[p][5],"color",sFGColor);
+            //}
+
+            //var _strAdditionalText = " <small>" + aPrjCatLength_Weighted[_gIndex].map(ele => ele.toFixed(1)) + "</small>";
+            var _strAdditionalText = ""
+            dojo.place("<div class = \"projectitem\" >&nbsp;&nbsp;" + _prjName + _strAdditionalText + "</div></br>", "projects");
+            
+          }
+
           //dojo.create("div", { id:, innerHTML: "<p>hi</p>" }, "divResults");
           
           //divResults.innerHTML += "</br>";
@@ -655,7 +678,6 @@ define(['dojo/_base/declare',
           // Change the cursor back to its default style
           
         }
-
         dojo.place("</br></br></br>", "projects");
     
       },
@@ -719,11 +741,11 @@ define(['dojo/_base/declare',
             "else if (score>=" + String(lstBinLows[3]) + ") { return 'class_2'; }" +
             "else if (score>=" + String(lstBinLows[4]) + ") { return 'class_1'; }",
           uniqueValueInfos: [
-            { value: "class_5", label: String(lstBinLows[0] * 100) +                                 "-100% of Max Score", symbol: new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 12, new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([255,255,255]), 1), new Color(lstYellowToBlue[0]))},
-            { value: "class_4", label: String(lstBinLows[1] * 100) + "-" + String(lstBinLows[0] * 100) + "% of Max Score", symbol: new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 12, new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([255,255,255]), 1), new Color(lstYellowToBlue[1]))},
-            { value: "class_3", label: String(lstBinLows[2] * 100) + "-" + String(lstBinLows[1] * 100) + "% of Max Score", symbol: new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 12, new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([255,255,255]), 1), new Color(lstYellowToBlue[2]))},
-            { value: "class_2", label: String(lstBinLows[3] * 100) + "-" + String(lstBinLows[2] * 100) + "% of Max Score", symbol: new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 12, new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([255,255,255]), 1), new Color(lstYellowToBlue[3]))},
-            { value: "class_1", label: String(lstBinLows[4] * 100) + "-" + String(lstBinLows[3] * 100) + "% of Max Score", symbol: new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 12, new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([255,255,255]), 1), new Color(lstYellowToBlue[4]))},
+            { value: "class_5", label: String(lstBinLows[0] * 100) +                                 "-100% of Max Score", symbol: new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 15, new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color(lstYellowToBlue[4]), 1), new Color(lstYellowToBlue[0]))},
+            { value: "class_4", label: String(lstBinLows[1] * 100) + "-" + String(lstBinLows[0] * 100) + "% of Max Score", symbol: new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 15, new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color(lstYellowToBlue[3]), 1), new Color(lstYellowToBlue[1]))},
+            { value: "class_3", label: String(lstBinLows[2] * 100) + "-" + String(lstBinLows[1] * 100) + "% of Max Score", symbol: new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 15, new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color(lstYellowToBlue[2]), 1), new Color(lstYellowToBlue[2]))},
+            { value: "class_2", label: String(lstBinLows[3] * 100) + "-" + String(lstBinLows[2] * 100) + "% of Max Score", symbol: new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 15, new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color(lstYellowToBlue[1]), 1), new Color(lstYellowToBlue[3]))},
+            { value: "class_1", label: String(lstBinLows[4] * 100) + "-" + String(lstBinLows[3] * 100) + "% of Max Score", symbol: new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 15, new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color(lstYellowToBlue[0]), 1), new Color(lstYellowToBlue[4]))}
           ]
         });
         lyrRTPResiliencySegs.setRenderer(vcUVRenderer_seg);
@@ -1055,9 +1077,17 @@ define(['dojo/_base/declare',
         console.log('_zoomToProjectAndShowScore');
         var _gid = dGIds[this.id.substring(this.id.indexOf("_") + 1)].g;
         console.log('ID: ' + _gid);
-              
-        queryTask = new esri.tasks.QueryTask(lyrRTPResiliencySegs.url);
         
+        if (dGIds[this.id.substring(this.id.indexOf("_") + 1)].x=='seg') {
+          queryTask = new esri.tasks.QueryTask(lyrRTPResiliencySegs.url);
+          lyrRTPResiliencySegs_Selected.setDefinitionExpression("GIS_ID = '" + _gid + "'");
+          lyrRTPResiliencyPnts_Selected.setDefinitionExpression("GIS_ID = 'NONE'");
+        } else if (dGIds[this.id.substring(this.id.indexOf("_") + 1)].x=='pnt') {
+          queryTask = new esri.tasks.QueryTask(lyrRTPResiliencyPnts.url);
+          lyrRTPResiliencyPnts_Selected.setDefinitionExpression("GIS_ID = '" + _gid + "'");
+          lyrRTPResiliencySegs_Selected.setDefinitionExpression("GIS_ID = 'NONE'");
+        }
+
         query = new esri.tasks.Query();
         query.returnGeometry = true;
         query.outFields = ["*"];
@@ -1074,19 +1104,23 @@ define(['dojo/_base/declare',
           
           if (featureSet.features[0].geometry.type == "polyline" || featureSet.features[0].geometry.type == "polygon"){ 
             //clearing any graphics if present. 
-            wR.map.graphics.clear(); 
+            //wR.map.graphics.clear(); 
             newExtent = new Extent(featureSet.features[0].geometry.getExtent()) 
-              for (i = 0; i < featureSet.features.length; i++) { 
-                var graphic = featureSet.features[i]; 
-                var thisExtent = graphic.geometry.getExtent(); 
-  
-                // making a union of extent or previous feature and current feature. 
-                newExtent = newExtent.union(thisExtent); 
-                //graphic.setSymbol(sfs); 
-                //graphic.setInfoTemplate(popupTemplate); 
-                wR.map.graphics.add(graphic); 
-              } 
-              wR.map.setExtent(newExtent.expand(2)); 
+            for (i = 0; i < featureSet.features.length; i++) { 
+              var graphic = featureSet.features[i]; 
+              var thisExtent = graphic.geometry.getExtent(); 
+
+              // making a union of extent or previous feature and current feature. 
+              newExtent = newExtent.union(thisExtent); 
+              //graphic.setSymbol(sfs); 
+              //graphic.setInfoTemplate(popupTemplate); 
+              //wR.map.graphics.add(graphic); 
+            } 
+            wR.map.setExtent(newExtent.expand(1.5)); 
+          } else if (featureSet.features[0].geometry.type == "point"){ 
+            //clearing any graphics if present. 
+            var point = featureSet.features[0].geometry;
+            wR.map.centerAndZoom(point, 15); // Replace 'map' with your map object
           }
           
           //var queryseg = new Query();  
@@ -1096,8 +1130,7 @@ define(['dojo/_base/declare',
           //var selectSeg = lyrRTPResiliencySegs_Selected.selectFeatures(queryseg, FeatureLayer.SELECTION_NEW);
           //wR.map.infoWindow.lineSymbol = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, Color.fromHex(sSelectionColor), 2);
           //wR.map.infoWindow.setFeatures([selectSeg]);
-          lyrRTPResiliencySegs_Selected.setDefinitionExpression("GIS_ID IN ('" + _gid + "')");
-          lyrRTPResiliencySegs_Selected.show();
+
         }
 
         // Open scoring widget

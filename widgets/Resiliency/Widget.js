@@ -18,8 +18,8 @@ var jsonSegs = 'widgets/Resiliency/data/segs.json'
 var jsonGIds = 'widgets/Resiliency/data/gids.json'
 var jsonWithinBufferFolder = 'widgets/Resiliency/data/within_buffers/'
 
-var WIDGETPOOLID_LEGEND = 0;
-var WIDGETPOOLID_SCORE = 2;
+var WIDGETPOOLID_LEGEND = 2;
+var WIDGETPOOLID_SCORE = 1;
 
 // initialize global variables
 var aPrjBinCumLengths = [];
@@ -646,6 +646,7 @@ define(['dojo/_base/declare',
           
           _gID     = dGIds[parseInt(_aSortProjects[p][5])].g;
           _prjName = dGIds[parseInt(_aSortProjects[p][5])].n;
+          _plnId   = dGIds[parseInt(_aSortProjects[p][5])].p;
           _gIndex  = dGIds.findIndex(obj => obj.g==_gID)
 
           // check if project is in fltrMode
@@ -667,7 +668,7 @@ define(['dojo/_base/declare',
 
             //var _strAdditionalText = " <small>" + aPrjCatLength_Weighted[_gIndex].map(ele => ele.toFixed(1)) + "</small>";
             var _strAdditionalText = ""
-            dojo.place("<div class = \"projectitem\" >&nbsp;&nbsp;" + _prjName + _strAdditionalText + "</div></br>", "projects");
+            dojo.place("<div class = \"projectitem\" >&nbsp;&nbsp;" + _plnId + ': ' + _prjName + _strAdditionalText + "</div></br>", "projects");
             
           }
 

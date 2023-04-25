@@ -1,5 +1,7 @@
-var sRTPResiliencySegs = 'Environmental Risk';
-var sRTPResiliencySegs_Selected = 'RTP Resiliency Projects - Lines';
+var sRTPResiliencySegs = 'Environmental Risk - Line Projects' ;
+var sRTPResiliencyPnts = 'Environmental Risk - Point Projects';
+var sRTPResiliencySegs_Selected = 'Line Projects' ;
+var sRTPResiliencyPnts_Selected = 'Point Projects';
 
 // bins for scoring based on percent of max and bins for coloring layers
 var lstBinLows      = [0.95     , 0.85     , 0.60     , 0.30     , 0.00     ];
@@ -25,6 +27,8 @@ var sCurCommunities = "";
 var dCurCommunities = [];
 var lyrRTPResiliencySegs;
 var lyrRTPResiliencySegs_Selected;
+var lyrRTPResiliencyPnts;
+var lyrRTPResiliencyPnts_Selected;
 var strSelectedPriorities = '';
 var numCats = 0;
 var ctCats = 0;
@@ -112,6 +116,14 @@ define(['dojo/_base/declare',
             lyrRTPResiliencySegs_Selected.setDefinitionExpression("GIS_ID IN ('NONE')");
             lyrRTPResiliencySegs_Selected.show();
             console.log(sRTPResiliencySegs_Selected + ' Found');
+          } else if (currentLayerInfo.title == sRTPResiliencyPnts) {
+            lyrRTPResiliencyPnts = layerInfosObject._layerInfos[j].layerObject;
+            console.log(lyrRTPResiliencyPnts + ' Found');
+          } else if (currentLayerInfo.title == sRTPResiliencyPnts_Selected) {
+            lyrRTPResiliencyPnts_Selected = layerInfosObject._layerInfos[j].layerObject;
+            lyrRTPResiliencyPnts_Selected.setDefinitionExpression("GIS_ID IN ('NONE')");
+            lyrRTPResiliencyPnts_Selected.show();
+            console.log(sRTPResiliencyPnts_Selected + ' Found');
           }
         }
 
@@ -228,15 +240,25 @@ define(['dojo/_base/declare',
       _dirtyQuery: function() {
         dom.byId('btnCalculateScores').style.backgroundColor = "red";
         dom.byId('btnCalculateScores').innerHTML = "Run Query";
-        var vcUVRenderer = new UniqueValueRenderer({
+        var vcUVRenderer_seg = new UniqueValueRenderer({
           type: "unique-value",  // autocasts as new UniqueValueRenderer()
           valueExpression: "return 'class_0';",
           uniqueValueInfos: [
             { value: "class_0", label: "No Results"  , symbol: new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color("#dcdcdc"), 0.5)}
           ]
         });
-        lyrRTPResiliencySegs.setRenderer(vcUVRenderer);
+        lyrRTPResiliencySegs.setRenderer(vcUVRenderer_seg);
         lyrRTPResiliencySegs_Selected.hide();
+
+        var vcUVRenderer_pnt = new UniqueValueRenderer({
+          type: "unique-value",  // autocasts as new UniqueValueRenderer()
+          valueExpression: "return 'class_0';",
+          uniqueValueInfos: [
+            { value: "class_0", label: "No Results"  , symbol: new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 12, new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([255,255,255]), 1), new Color("#dcdcdc"))}
+          ]
+        });
+        lyrRTPResiliencyPnts.setRenderer(vcUVRenderer_pnt);
+        lyrRTPResiliencyPnts_Selected.hide();
 
         if (typeof progressBar !== "undefined") {
           progressBar.destroyRecursive();
@@ -355,7 +377,7 @@ define(['dojo/_base/declare',
     
           aPrjCatLength_Weighted = [];
 
-          // loop through all gis_ids
+          // loop through all GIS_IDs
           for (g in dGIds) {
             progressBar.set('value', (g / (dGIds.length -1)) * 100);
 
@@ -441,7 +463,7 @@ define(['dojo/_base/declare',
           aPrjBinCumLengths        = [];
           aPrjBinCumLengthsPercent = [];
 
-          // loop through all gis_ids
+          // loop through all GIS_IDs
           for (g in dGIds) {
             var _projLength = 0;
             var _segs = dSegs.filter(o => o['g'] == dGIds[g].g);
@@ -662,8 +684,7 @@ define(['dojo/_base/declare',
           _scoreExp += "totScore += catScore;"
         }
 
-
-        var vcUVRenderer = new UniqueValueRenderer({
+        var vcUVRenderer_seg = new UniqueValueRenderer({
           type: "unique-value",  // autocasts as new UniqueValueRenderer()
           valueExpression: _scoreExp + "" +
             "var score = (totScore) /" + maxScore + ";" +
@@ -679,10 +700,28 @@ define(['dojo/_base/declare',
             { value: "class_2", label: String(lstBinLows[3] * 100) + "-" + String(lstBinLows[2] * 100) + "% of Max Score", symbol: new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color(lstYellowToBlue[3]), 2)},
             { value: "class_1", label: String(lstBinLows[4] * 100) + "-" + String(lstBinLows[3] * 100) + "% of Max Score", symbol: new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color(lstYellowToBlue[4]), 1)}
           ]
-
         });
-        lyrRTPResiliencySegs.setRenderer(vcUVRenderer);
+        var vcUVRenderer_pnt = new UniqueValueRenderer({
+          type: "unique-value",  // autocasts as new UniqueValueRenderer()
+          valueExpression: _scoreExp + "" +
+            "var score = (totScore) /" + maxScore + ";" +
+            "if      (score>=" + String(lstBinLows[0]) + ") { return 'class_5'; }" +
+            "else if (score>=" + String(lstBinLows[1]) + ") { return 'class_4'; }" +
+            "else if (score>=" + String(lstBinLows[2]) + ") { return 'class_3'; }" +
+            "else if (score>=" + String(lstBinLows[3]) + ") { return 'class_2'; }" +
+            "else if (score>=" + String(lstBinLows[4]) + ") { return 'class_1'; }",
+          uniqueValueInfos: [
+            { value: "class_5", label: String(lstBinLows[0] * 100) +                                 "-100% of Max Score", symbol: new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 12, new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([255,255,255]), 1), new Color(lstYellowToBlue[0]))},
+            { value: "class_4", label: String(lstBinLows[1] * 100) + "-" + String(lstBinLows[0] * 100) + "% of Max Score", symbol: new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 12, new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([255,255,255]), 1), new Color(lstYellowToBlue[1]))},
+            { value: "class_3", label: String(lstBinLows[2] * 100) + "-" + String(lstBinLows[1] * 100) + "% of Max Score", symbol: new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 12, new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([255,255,255]), 1), new Color(lstYellowToBlue[2]))},
+            { value: "class_2", label: String(lstBinLows[3] * 100) + "-" + String(lstBinLows[2] * 100) + "% of Max Score", symbol: new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 12, new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([255,255,255]), 1), new Color(lstYellowToBlue[3]))},
+            { value: "class_1", label: String(lstBinLows[4] * 100) + "-" + String(lstBinLows[3] * 100) + "% of Max Score", symbol: new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 12, new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([255,255,255]), 1), new Color(lstYellowToBlue[4]))},
+          ]
+        });
+        lyrRTPResiliencySegs.setRenderer(vcUVRenderer_seg);
         lyrRTPResiliencySegs.show();
+        lyrRTPResiliencyPnts.setRenderer(vcUVRenderer_pnt);
+        lyrRTPResiliencyPnts.show();
 
       },
 
@@ -1015,7 +1054,7 @@ define(['dojo/_base/declare',
         query = new esri.tasks.Query();
         query.returnGeometry = true;
         query.outFields = ["*"];
-        query.where = "gis_id = '" + _gid + "'";
+        query.where = "GIS_ID = '" + _gid + "'";
         
         queryTask.execute(query, showResults);
         
@@ -1045,12 +1084,12 @@ define(['dojo/_base/declare',
           
           //var queryseg = new Query();  
           //queryseg.returnGeometry = false;
-          //queryseg.where = "gis_id  = " + featureSet.features[0].attributes[sFN_ID];;
+          //queryseg.where = "GIS_ID  = " + featureSet.features[0].attributes[sFN_ID];;
           //queryseg.outFields = ["*"];
           //var selectSeg = lyrRTPResiliencySegs_Selected.selectFeatures(queryseg, FeatureLayer.SELECTION_NEW);
           //wR.map.infoWindow.lineSymbol = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, Color.fromHex(sSelectionColor), 2);
           //wR.map.infoWindow.setFeatures([selectSeg]);
-          lyrRTPResiliencySegs_Selected.setDefinitionExpression("gis_id IN ('" + _gid + "')");
+          lyrRTPResiliencySegs_Selected.setDefinitionExpression("GIS_ID IN ('" + _gid + "')");
           lyrRTPResiliencySegs_Selected.show();
         }
 

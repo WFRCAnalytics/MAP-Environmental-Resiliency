@@ -34,6 +34,14 @@ function(declare, dom, BaseWidget, CheckBox, html, domReady, LayerInfos, Select,
         wLS = this;
         this.map.setInfoWindowOnClick(false); // turn off info window (popup) when clicking a feature
         wLS._updateProjectScore();
+
+                
+        var panel = this.getPanel();
+        var pos = panel.position;
+        pos.width = 500;
+        panel.setPosition(pos);
+        panel.panelManager.normalizePanel(panel);
+
     },
 
     _updateProjectScore: function(_g) {

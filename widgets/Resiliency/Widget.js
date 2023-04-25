@@ -719,10 +719,9 @@ define(['dojo/_base/declare',
           ]
         });
         lyrRTPResiliencySegs.setRenderer(vcUVRenderer_seg);
-        lyrRTPResiliencySegs.show();
         lyrRTPResiliencyPnts.setRenderer(vcUVRenderer_pnt);
+        lyrRTPResiliencySegs.show();
         lyrRTPResiliencyPnts.show();
-
       },
 
       //Run when receiving a message

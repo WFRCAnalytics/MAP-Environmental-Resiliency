@@ -289,34 +289,34 @@
     },
     "widgets": [
       {
-        "uri": "widgets/Legend/Widget",
+        "name": "Demo",
         "version": "2.20",
-        "id": "widgets_Legend_Widget_18",
-        "name": "Legend",
-        "index": 2
-      },
-      {
-        "name": "LayerList",
-        "version": "2.20",
-        "uri": "widgets/LayerList/Widget",
-        "index": 3,
-        "id": "widgets_LayerList_Widget_38"
+        "uri": "widgets/Demo/Widget",
+        "config": "configs/Demo/config_widgets_Demo_Widget_40.json",
+        "index": 2,
+        "id": "widgets_Demo_Widget_40"
       },
       {
         "name": "Location Score",
         "version": "2.20",
         "IsController": false,
         "uri": "widgets/LocationScore/Widget",
-        "index": 4,
+        "index": 3,
         "id": "widgets_LocationScore_Widget_37"
       },
       {
-        "name": "About",
+        "uri": "widgets/Legend/Widget",
         "version": "2.20",
-        "uri": "widgets/About/Widget",
-        "config": "configs/About/config_widgets_About_Widget_39.json",
-        "index": 6,
-        "id": "widgets_About_Widget_39"
+        "id": "widgets_Legend_Widget_18",
+        "name": "Legend",
+        "index": 4
+      },
+      {
+        "name": "LayerList",
+        "version": "2.20",
+        "uri": "widgets/LayerList/Widget",
+        "index": 5,
+        "id": "widgets_LayerList_Widget_38"
       }
     ],
     "groups": []

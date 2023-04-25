@@ -7,6 +7,7 @@ var sRTPResiliencyPnts_Selected = 'Point Projects';
 var lstBinLows      = [0.95     , 0.85     , 0.60     , 0.30     , 0.00     ];
 var lstYellowToBlue = ["#031273", "#2c7fb8", "#52c7d5", "#a1dab4", "#ffffcc"];
 
+var fltrMode = 'All';
 var curBuffer = 100; // default buffer
 var curResultSort = 'length';
 var segLengthMiles = 0.125; // from the data prep notebook
@@ -130,6 +131,8 @@ define(['dojo/_base/declare',
         // set current buffer
         dom.byId('bufferText').value = curBuffer;
         
+        // set mode filter
+        dom.byId('fltrMode').value = fltrMode;
 
         // Populate gisids object
         dojo.xhrGet({
@@ -281,6 +284,11 @@ define(['dojo/_base/declare',
         
         dojo.empty(divProjects);
 
+      },
+
+      _updateFltrMode: function() {
+        console.log('_updateFltrMode');
+        fltrMode = dom.byId('fltrMode').value;
       },
 
       _updateBuffer: function() {

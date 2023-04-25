@@ -16,24 +16,7 @@
     <table>
       <tr>
         <td colspan="3">
-          <p class="thicker">Step 1: Filter Projects</p>
-        </td>
-      </tr>
-      <tr>
-        <td></td>
-        <td>
-          <span><b>Projects:</b></span>
-          <select>
-            <option>All</option>
-          </select>
-        </td>
-      </tr>
-    </table>
-    <br />
-    <table>
-      <tr>
-        <td colspan="3">
-          <p class="thicker">Step 2: Set Buffer</p>
+          <p class="thicker">Step 1: Set Buffer</p>
         </td>
       </tr>
       <tr>
@@ -55,7 +38,7 @@
     <table width="325px;">
       <tr>
         <td colspan="3">
-          <p class="thicker">Step 3: Customize Factors & Weights</p>
+          <p class="thicker">Step 2: Customize Factors & Weights</p>
         </td>
       </tr>
       <tr>
@@ -86,6 +69,26 @@
   <br />
   <div id="divProgressBarContainer"></div>
   <hr />
+  <table>
+    <tr>
+      <td colspan="3">
+        <p class="thicker">Filter Results</p>
+      </td>
+    </tr>
+    <tr>
+      <td></td>
+      <td>
+        <span><b>Mode:</b></span>
+        <select id="fltrMode" data-dojo-type="dijit/form/Select" data-dojo-attach-event="onChange: _updateFltrMode">
+          <option value="All"                  >All                  </option>
+          <option value="Active Transportation">Active Transportation</option>
+          <option value="Highway"              >Highway              </option>
+          <option value="Transit"              >Transit              </option>
+        </select>
+      </td>
+    </tr>
+  </table>
+  <hr/>
   <table width="325px;">
     <tr>
       <td width="195px;">
@@ -106,6 +109,7 @@
       </td>
     </tr>
   </table>
+  <br />
   <table>
     <tr>
       <td width="10px;">

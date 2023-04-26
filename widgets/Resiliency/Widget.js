@@ -20,6 +20,7 @@ var jsonWithinBufferFolder = 'widgets/Resiliency/data/within_buffers/'
 
 var WIDGETPOOLID_LEGEND = 2;
 var WIDGETPOOLID_SCORE = 1;
+var WIDGETPOOLID_REPORT = 0;
 
 // initialize global variables
 var aPrjBinCumLengths = [];
@@ -273,7 +274,7 @@ define(['dojo/_base/declare',
         //Close Location Scores if open
         var pm = PanelManager.getInstance();
         for (var p = 0; p < pm.panels.length; p++) {
-          if (pm.panels[p].label == 'Location Scores') {
+          if (pm.panels[p].label == 'Location Scores' || pm.panels[p].label == 'Report') {
             pm.closePanel(pm.panels[p]);
           }
         }
@@ -399,6 +400,7 @@ define(['dojo/_base/declare',
             maximum: 100
           }, "divProgressBarContainer");
     
+          // project array of the length of each impact per category
           aPrjCatLength_Weighted = [];
 
           // loop through all GIS_IDs
@@ -407,6 +409,7 @@ define(['dojo/_base/declare',
 
             //wR.requestAnimationFrame(wR.repeatOften());
 
+            // segment array of the length of each impact per category
             _catLength_Weighted = new Array(dCats.length).fill(0);
 
             //window.requestAnimationFrame();
@@ -612,19 +615,19 @@ define(['dojo/_base/declare',
         _ctElements = 1;
 
         if (curResultSort=='length') {
-          var _aSortProjects = aPrjBinCumLengths;
+          aSortProjects = aPrjBinCumLengths;
         } else if (curResultSort=='percent') {
-          var _aSortProjects = aPrjBinCumLengthsPercent;
+          aSortProjects = aPrjBinCumLengthsPercent;
         }
 
         dojo.place("<hr\><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Rank&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Plan ID and Project Name</b><hr\>", "projects");
 
-        for (p=0; p<_aSortProjects.length; p++) {
+        for (p=0; p<aSortProjects.length; p++) {
 
           if (p>0) {
 
             // check if same score as previous
-            if (_aSortProjects[p].slice(0, -1).every((element, index) => element === _aSortProjects[p-1].slice(0, -1)[index])) {
+            if (aSortProjects[p].slice(0, -1).every((element, index) => element === aSortProjects[p-1].slice(0, -1)[index])) {
               // don't do anything since if they have the same scores, they should be the same rank
             } else {
               _ctRank = _ctElements;
@@ -647,26 +650,26 @@ define(['dojo/_base/declare',
           //  sFGColor="";
           //}
           
-          _gID     = dGIds[parseInt(_aSortProjects[p][5])].g;
-          _prjName = dGIds[parseInt(_aSortProjects[p][5])].n;
-          _plnId   = dGIds[parseInt(_aSortProjects[p][5])].p;
+          _gID     = dGIds[parseInt(aSortProjects[p][5])].g;
+          _prjName = dGIds[parseInt(aSortProjects[p][5])].n;
+          _plnId   = dGIds[parseInt(aSortProjects[p][5])].p;
           _gIndex  = dGIds.findIndex(obj => obj.g==_gID)
 
           // check if project is in fltrMode
           if (fltrMode=='All' | dGIds.find(o => o['g'] == _gID).m == fltrMode) {
             
-            var button3 = new Button({ label:String(_ctRank), id:"button_" + String(_aSortProjects[p][5])});
+            var button3 = new Button({ label:String(_ctRank), id:"button_" + String(aSortProjects[p][5])});
             button3.startup();
             button3.placeAt(projects);
             button3.on("click", this._zoomToProjectAndShowScore);
             
-            dojo.style("button_" + _aSortProjects[p][5],"width","40px");
-            dojo.style("button_" + _aSortProjects[p][5],"height","16px");
+            dojo.style("button_" + aSortProjects[p][5],"width","40px");
+            dojo.style("button_" + aSortProjects[p][5],"height","16px");
             //if (sBGColor!="") {
-            //  dojo.style("button_" + _aSortProjects[p][5],"background",sBGColor);
+            //  dojo.style("button_" + aSortProjects[p][5],"background",sBGColor);
             //}
             //if (sFGColor!="") {
-            //  dojo.style("button_" + _aSortProjects[p][5],"color",sFGColor);
+            //  dojo.style("button_" + aSortProjects[p][5],"color",sFGColor);
             //}
 
             //var _strAdditionalText = " <small>" + aPrjCatLength_Weighted[_gIndex].map(ele => ele.toFixed(1)) + "</small>";
@@ -683,7 +686,11 @@ define(['dojo/_base/declare',
           
         }
         dojo.place("</br></br></br>", "projects");
-    
+
+        // update report
+        wR.publishData({
+          message: 'report'
+        });
       },
 
       _updateDisplay: function () {
@@ -745,17 +752,17 @@ define(['dojo/_base/declare',
             "else if (score>=" + String(lstBinLows[3]) + ") { return 'class_2'; }" +
             "else if (score>=" + String(lstBinLows[4]) + ") { return 'class_1'; }",
           uniqueValueInfos: [
-            { value: "class_5", label: String(lstBinLows[0] * 100) +                                 "-100% of Max Score", symbol: new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 15, new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color(lstYellowToBlue[4]), 1), new Color(lstYellowToBlue[0]))},
-            { value: "class_4", label: String(lstBinLows[1] * 100) + "-" + String(lstBinLows[0] * 100) + "% of Max Score", symbol: new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 15, new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color(lstYellowToBlue[3]), 1), new Color(lstYellowToBlue[1]))},
-            { value: "class_3", label: String(lstBinLows[2] * 100) + "-" + String(lstBinLows[1] * 100) + "% of Max Score", symbol: new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 15, new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color(lstYellowToBlue[2]), 1), new Color(lstYellowToBlue[2]))},
-            { value: "class_2", label: String(lstBinLows[3] * 100) + "-" + String(lstBinLows[2] * 100) + "% of Max Score", symbol: new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 15, new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color(lstYellowToBlue[1]), 1), new Color(lstYellowToBlue[3]))},
-            { value: "class_1", label: String(lstBinLows[4] * 100) + "-" + String(lstBinLows[3] * 100) + "% of Max Score", symbol: new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 15, new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color(lstYellowToBlue[0]), 1), new Color(lstYellowToBlue[4]))}
+            { value: "class_5", label: String(lstBinLows[0] * 100) +                                 "-100% of Max Score", symbol: new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 10, new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color(lstYellowToBlue[4]), .5), new Color(lstYellowToBlue[0]))},
+            { value: "class_4", label: String(lstBinLows[1] * 100) + "-" + String(lstBinLows[0] * 100) + "% of Max Score", symbol: new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 10, new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color(lstYellowToBlue[3]), .5), new Color(lstYellowToBlue[1]))},
+            { value: "class_3", label: String(lstBinLows[2] * 100) + "-" + String(lstBinLows[1] * 100) + "% of Max Score", symbol: new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 10, new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color(lstYellowToBlue[2]), .5), new Color(lstYellowToBlue[2]))},
+            { value: "class_2", label: String(lstBinLows[3] * 100) + "-" + String(lstBinLows[2] * 100) + "% of Max Score", symbol: new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 10, new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color(lstYellowToBlue[1]), .5), new Color(lstYellowToBlue[3]))},
+            { value: "class_1", label: String(lstBinLows[4] * 100) + "-" + String(lstBinLows[3] * 100) + "% of Max Score", symbol: new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 10, new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color(lstYellowToBlue[0]), .5), new Color(lstYellowToBlue[4]))}
           ]
         });
-        lyrRTPResiliencySegs.setRenderer(vcUVRenderer_seg);
         lyrRTPResiliencyPnts.setRenderer(vcUVRenderer_pnt);
-        lyrRTPResiliencySegs.show();
+        lyrRTPResiliencySegs.setRenderer(vcUVRenderer_seg);
         lyrRTPResiliencyPnts.show();
+        lyrRTPResiliencySegs.show();
       },
 
       //Run when receiving a message
@@ -1160,6 +1167,23 @@ define(['dojo/_base/declare',
         console.log('_changeResultsSort');
         curResultSort = document.querySelector('input[name="resultsSort"]:checked').value;
         wR._updateResults();
+      },
+
+      _openReport:function() {
+        console.log('_openReport')
+        // Open scoring widget
+        var pm = PanelManager.getInstance();
+
+        //Close Segment Widget if open
+        //for (var p=0; p < pm.panels.length; p++) {
+        //    if (pm.panels[p].label == sSegWidgetLabel) {
+        //        pm.closePanel(pm.panels[p]);
+        //      }
+        //}
+
+        //Open scoring widget
+        pm.showPanel(wR.appConfig.widgetPool.widgets[WIDGETPOOLID_REPORT]);
+        
       }
 
       // onOpen: function(){

@@ -1,84 +1,82 @@
 <div>
-  <div>
-<!--<table width="325px;">
-      <tr bgcolor="#FFDDAA">
-        <td colspan="3">
-          <span><b>&nbsp;Load Preset Settings:</b></span>
-          <select>
-            <option>Default</option>
-          </select>
-          <div id="sw" data-dojo-type="dojox/mobile/Switch" value="off"></div>
-        </td>
-      </tr>
-    </table>
-    <br />
--->
+  <table>
+    <tr>
+      <td colspan="3">
+        <p class="thicker">Step 1: Set Buffer</p>
+      </td>
+    </tr>
+    <tr>
+      <td></td>
+      <td colspan="2" width="300px;">
+        <span><b>Buffer (feet): </b></span><!--<input data-dojo-type="dijit/form/TextBox" id="buffer" value="500"/>-->
+        <select id="bufferText" data-dojo-type="dijit/form/Select" data-dojo-attach-event="onChange: _updateBuffer">
+          <option value="100" > 100</option>
+          <option value="200" > 200</option>
+          <option value="300" > 300</option>
+          <option value="400" > 400</option>
+          <option value="500" > 500</option>
+          <option value="600" > 600</option>
+        </select>
+      </td>
+    </tr>
+  </table>
+  <br />
+  <table width="325px;">
+    <tr>
+      <td colspan="3">
+        <p class="thicker">Step 2: Customize Factors & Weights</p>
+      </td>
+    </tr>
+    <tr>
+      <td></td>
+      <td colspan="2" width="300px;">
+        <div id="menu"></div>
+      </td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td></td>
+      <td>
+        <div id="turnoffall" data-dojo-attach-event="onClick: _uncheckAll" class="clickablepointer" style="color:gray;">Uncheck All</div>
+      </td>
+      <td>
+        <div id="showlegend" data-dojo-attach-event="onClick: _showLegend" class="clickablepointer"
+          style="color:green; display: flex; justify-content: flex-end">show legend</div>
+      </td>
+    </tr>
+    <tr>
+      <td></td>
+      <td colspan="2">
+        <h3>Background Layers Max Opacity: <div id="opa" style="display: inline"></div></h3>
+        <div id="horizSlider"></div>
+        <br/>
+      </td>
+    </tr>
+    <tr>
+      <td colspan="3">
+        <p class="thicker">Step 3: Run Query and Analyze Results</p>
+      </td>
+    </tr>
+    <tr>
+      <td></td>
+      <td colspan="2">
+        <div id="btnCalculateScores" class="jimu-btn" data-dojo-attach-event="onClick: _calculateScores" style="width: 100%;">Run Query</div>
+        <div id="divProgressBarContainer"></div>
+      </td>
+    </tr>
+  </table>
+  <br/>
+  <br/>
+  <div id="resultsheader" style="display:none">
     <table>
       <tr>
-        <td colspan="3">
-          <p class="thicker">Step 1: Set Buffer</p>
-        </td>
-      </tr>
-      <tr>
-        <td></td>
-        <td colspan="2" width="300px;">
-          <span><b>Buffer (feet): </b></span><!--<input data-dojo-type="dijit/form/TextBox" id="buffer" value="500"/>-->
-          <select id="bufferText" data-dojo-type="dijit/form/Select" data-dojo-attach-event="onChange: _updateBuffer">
-            <option value="100" > 100</option>
-            <option value="200" > 200</option>
-            <option value="300" > 300</option>
-            <option value="400" > 400</option>
-            <option value="500" > 500</option>
-            <option value="600" > 600</option>
-          </select>
-        </td>
-      </tr>
-    </table>
-    <br />
-    <table width="325px;">
-      <tr>
-        <td colspan="3">
-          <p class="thicker">Step 2: Customize Factors & Weights</p>
-        </td>
-      </tr>
-      <tr>
-        <td></td>
-        <td colspan="2" width="300px;">
-          <div id="menu"></div>
-        </td>
-      </tr>
-    </table>
-    <br/>
-    <table width="100%">
-      <tr>
         <td>
-          <div id="turnoffall" data-dojo-attach-event="onClick: _uncheckAll" class="clickablepointer" style="color:gray;">Uncheck All</div>
+          <p class="thicker">Rank by: </p>
         </td>
-        <td>
-          <div id="showlegend" data-dojo-attach-event="onClick: _showLegend" class="clickablepointer"
-            style="color:green; display: flex; justify-content: flex-end">show legend</div>
-        </td>
-      </tr>
-    </table>
-  </div>
-  <div id="btnCalculateScores" class="jimu-btn" data-dojo-attach-event="onClick: _calculateScores" style="width: 100%;">Run Query</div>
-  <br />
-  <div id="divProgressBarContainer"></div>
-  <br />
-  <h3>Background Layers Max Transparency: <div id="opa" style="display: inline"></div></h3>
-  <div id="horizSlider"></div>
-  <hr />
-  <div id="resultsheader">
-    <table>
-      <tr>
-        <td colspan="3">
-          <p class="thicker">Ranked Projects <small>by Highest Score by Length/Percent</small></p>
-        </td>
-      </tr>
-      <tr>
-        <td width="5%"></td>
-        <td width="50%">
-          <span><b>Filter by Mode:</b></span>
+        <td rowspan=2 width="50%">
+          <span class="thicker"><b>Filter by Mode:</b></span>
           <select id="fltrMode" data-dojo-type="dijit/form/Select" data-dojo-attach-event="onChange: _updateFltrMode">
             <option value="All"                  >All                  </option>
             <option value="Active Transportation">Active Transportation</option>
@@ -86,15 +84,29 @@
             <option value="Transit"              >Transit              </option>
           </select>
         </td>
+      </tr>
+      <tr>
         <td>
-          Sort by: <br/>
           <form style="display:inline">
             <input type="radio" name="resultsSort" value="length" id="rbgResultsSortLength" data-dojo-attach-event="onClick: _changeResultsSort" checked>
-            <label for="rbgResultsSortLength">Length</label>
+            <label for="rbgResultsSortLength"><b>Length</b></label>
             &nbsp;
             <input type="radio" name="resultsSort" value="percent" id="rbgResultsSortPercent" data-dojo-attach-event="onClick: _changeResultsSort">
-            <label for="rbgResultsSortPercent">Percent</label>
+            <label for="rbgResultsSortPercent"><b>Percent</b></label>
           </form>
+        </td>
+      </tr>
+    </table>
+    <br/>
+    <br/>
+    <br/>
+    <table>
+      <tr>
+        <td width="75%">
+          <p class="thicker">Ranked Projects<br/><small>Highest Score by Length/Percent</small></p>
+        </td>
+        <td>
+          <div id="btnOpenReport" class="jimu-btn" data-dojo-attach-event="onClick: _openReport" style="width: 100%;">Full Report</div>
         </td>
       </tr>
     </table>

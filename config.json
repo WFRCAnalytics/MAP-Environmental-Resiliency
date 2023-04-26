@@ -289,12 +289,12 @@
     },
     "widgets": [
       {
-        "name": "Demo",
+        "name": "Report",
         "version": "2.20",
-        "uri": "widgets/Demo/Widget",
-        "config": "configs/Demo/config_widgets_Demo_Widget_40.json",
+        "uri": "widgets/Report/Widget",
+        "config": "configs/Report/config_widgets_Report_Widget_40.json",
         "index": 2,
-        "id": "widgets_Demo_Widget_40"
+        "id": "widgets_Report_Widget_40"
       },
       {
         "name": "Location Score",

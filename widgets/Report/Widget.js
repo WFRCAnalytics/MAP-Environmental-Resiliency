@@ -30,17 +30,29 @@ function(declare, BaseWidget) {
     },
 
     startup: function() {
-      this.inherited(arguments);
-      this.mapIdNode.innerHTML = 'map id:' + this.map.id;
+      // this.inherited(arguments);
+      // this.mapIdNode.innerHTML = 'map id:' + this.map.id;
       console.log('startup');
+      
+      wD = this;
+      
     },
 
     onOpen: function(){
       console.log('onOpen');
+      wD._widenWindow();
+    },
+
+    onResize: function(){
+      console.log('onResize');
+      wD._widenWindow();
     },
 
     onClose: function(){
       console.log('onClose');
+      wD.publishData({
+          message: "remove_report"
+      });
     },
 
     onMinimize: function(){
@@ -59,9 +71,26 @@ function(declare, BaseWidget) {
     onSignOut: function(){
       console.log('onSignOut');
     },
+    
+    //Run onOpen when receiving a message from OremLayerSymbology
+    onReceiveData: function(name, widgetId, data, historyData) {
+      //filter out messages
+      if(name !== 'report') {
+          return;
+      } else {
+          wLS._updateReport();
+      }
+    },
 
-    showVertexCount: function(count){
-      this.vertexCount.innerHTML = 'The vertex count is: ' + count;
+    _widenWindow: function() {
+      var windowWidth = window.innerWidth;
+      console.log("Window width is: " + windowWidth);
+      var panel = this.getPanel();
+      var pos = panel.position;
+      pos.width = windowWidth - 375;
+      panel.setPosition(pos);
+      panel.panelManager.normalizePanel(panel);
     }
+
   });
 });

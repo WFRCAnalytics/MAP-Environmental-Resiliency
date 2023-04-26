@@ -243,6 +243,7 @@ define(['dojo/_base/declare',
       _dirtyQuery: function() {
         dom.byId('btnCalculateScores').style.backgroundColor = "red";
         dom.byId('btnCalculateScores').innerHTML = "Run Query";
+        dom.byId('resultsheader').style.display='none';
         var vcUVRenderer_seg = new UniqueValueRenderer({
           type: "unique-value",  // autocasts as new UniqueValueRenderer()
           valueExpression: "return 'class_0';",
@@ -472,7 +473,9 @@ define(['dojo/_base/declare',
 
       _scoreProjects: function() {
         console.log('_scoreProjects');
-        
+
+        dom.byId('resultsheader').style.display='';
+
         // make sure objects are defined before entering
         if (typeof dGIds !== "undefined"  && typeof dSegs !== "undefined" && typeof dCats !== "undefined" && typeof dLyrs !== "undefined" && ctCats>0 && ctCats==numCats) {
           
@@ -614,7 +617,7 @@ define(['dojo/_base/declare',
           var _aSortProjects = aPrjBinCumLengthsPercent;
         }
 
-        dojo.place("<hr\><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Rank&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Project Name</b><hr\>", "projects");
+        dojo.place("<hr\><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Rank&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Plan ID and Project Name</b><hr\>", "projects");
 
         for (p=0; p<_aSortProjects.length; p++) {
 

@@ -60,55 +60,44 @@
         </td>
       </tr>
     </table>
-    <h3>Background Layers Max Transparency: <div id="opa" style="display: inline"></div></h3>
-    <div id="horizSlider"></div>
-    <br />
-
   </div>
   <div id="btnCalculateScores" class="jimu-btn" data-dojo-attach-event="onClick: _calculateScores" style="width: 100%;">Run Query</div>
   <br />
   <div id="divProgressBarContainer"></div>
-  <hr />
-  <table>
-    <tr>
-      <td colspan="3">
-        <p class="thicker">Filter Results</p>
-      </td>
-    </tr>
-    <tr>
-      <td></td>
-      <td>
-        <span><b>Mode:</b></span>
-        <select id="fltrMode" data-dojo-type="dijit/form/Select" data-dojo-attach-event="onChange: _updateFltrMode">
-          <option value="All"                  >All                  </option>
-          <option value="Active Transportation">Active Transportation</option>
-          <option value="Highway"              >Highway              </option>
-          <option value="Transit"              >Transit              </option>
-        </select>
-      </td>
-    </tr>
-  </table>
-  <hr/>
-  <table width="325px;">
-    <tr>
-      <td width="195px;">
-        <p class="thicker">Results</p>
-        Sort by: 
-        <form style="display:inline">
-          <input type="radio" name="resultsSort" value="length" id="rbgResultsSortLength" data-dojo-attach-event="onClick: _changeResultsSort" checked>
-          <label for="rbgResultsSortLength">Length</label>
-          &nbsp;
-          <input type="radio" name="resultsSort" value="percent" id="rbgResultsSortPercent" data-dojo-attach-event="onClick: _changeResultsSort">
-          <label for="rbgResultsSortPercent">Percent</label>
-        </form>
-      </td>
-      <td valign="right">
-        <div id="ATO_Zoom" style="display: flex; justify-content: flex-end"><input type="checkbox" id="chkAutoZoom"
-            name="AutoZoom" data-dojo-type="dijit/form/CheckBox" checked /><label for="chkAutoZoom"><small>&nbsp;Auto
-              Zoom&nbsp;&nbsp;</small></div></label>
-      </td>
-    </tr>
-  </table>
   <br />
+  <h3>Background Layers Max Transparency: <div id="opa" style="display: inline"></div></h3>
+  <div id="horizSlider"></div>
+  <hr />
+  <div id="resultsheader">
+    <table>
+      <tr>
+        <td colspan="3">
+          <p class="thicker">Ranked Projects <small>by Highest Score by Length/Percent</small></p>
+        </td>
+      </tr>
+      <tr>
+        <td width="5%"></td>
+        <td width="50%">
+          <span><b>Filter by Mode:</b></span>
+          <select id="fltrMode" data-dojo-type="dijit/form/Select" data-dojo-attach-event="onChange: _updateFltrMode">
+            <option value="All"                  >All                  </option>
+            <option value="Active Transportation">Active Transportation</option>
+            <option value="Highway"              >Highway              </option>
+            <option value="Transit"              >Transit              </option>
+          </select>
+        </td>
+        <td>
+          Sort by: <br/>
+          <form style="display:inline">
+            <input type="radio" name="resultsSort" value="length" id="rbgResultsSortLength" data-dojo-attach-event="onClick: _changeResultsSort" checked>
+            <label for="rbgResultsSortLength">Length</label>
+            &nbsp;
+            <input type="radio" name="resultsSort" value="percent" id="rbgResultsSortPercent" data-dojo-attach-event="onClick: _changeResultsSort">
+            <label for="rbgResultsSortPercent">Percent</label>
+          </form>
+        </td>
+      </tr>
+    </table>
+  </div>
   <div id="projects" class="projectList"></div>
 </div>

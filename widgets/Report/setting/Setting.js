@@ -21,7 +21,7 @@ define([
 function(declare, BaseWidgetSetting) {
 
   return declare([BaseWidgetSetting], {
-    baseClass: 'jimu-widget-demo-setting',
+    baseClass: 'jimu-widget-report-setting',
 
     postCreate: function(){
       //the config object is passed in

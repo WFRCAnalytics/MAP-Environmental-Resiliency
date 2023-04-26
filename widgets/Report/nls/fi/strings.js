@@ -1,7 +1,7 @@
 ﻿define({
   root: ({
-    _widgetLabel: "Demo",
-    label1: "Olen demo pienoisohjelma.",
+    _widgetLabel: "Report",
+    label1: "Olen report pienoisohjelma.",
     label2: "Tämä on konfiguroitava."
   }),
   "ar": 0,

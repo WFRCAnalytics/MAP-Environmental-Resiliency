@@ -1,7 +1,7 @@
 ﻿define({
   root: ({
     _widgetLabel: "Tanıtım",
-    label1: "Ben bir demo aracıyım.",
+    label1: "Ben bir report aracıyım.",
     label2: "Bu yapılandırılabilir."
   }),
   "ar": 0,

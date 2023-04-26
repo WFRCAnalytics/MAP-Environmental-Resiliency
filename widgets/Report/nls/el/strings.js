@@ -1,7 +1,7 @@
 ﻿define({
   root: ({
     _widgetLabel: "Επίδειξη",
-    label1: "Είμαι ένα δείγμα (demo) widget.",
+    label1: "Είμαι ένα δείγμα (report) widget.",
     label2: "Είναι παραμετροποιήσιμο."
   }),
   "ar": 0,

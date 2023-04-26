@@ -1,7 +1,7 @@
 ﻿define({
   root: ({
-    _widgetLabel: "Demo",
-    label1: "Tôi là một tiện ích demo.",
+    _widgetLabel: "Report",
+    label1: "Tôi là một tiện ích report.",
     label2: "Tiện ích này có thể cấu hình."
   }),
   "ar": 0,

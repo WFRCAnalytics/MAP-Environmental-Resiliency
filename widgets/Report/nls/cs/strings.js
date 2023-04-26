@@ -1,6 +1,6 @@
 ﻿define({
   root: ({
-    _widgetLabel: "Demo",
+    _widgetLabel: "Report",
     label1: "Jsem ukázkový widget.",
     label2: "Tuto položku lze nakonfigurovat."
   }),

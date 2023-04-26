@@ -1,8 +1,8 @@
 define({
   root: ({
-    _widgetLabel: "Demo",
+    _widgetLabel: "Report",
     _featureAction_ShowVertex: "Show Vertex Count",
-    label1: "I am a demo widget.",
+    label1: "I am a report widget.",
     label2: "This is configurable."
   }),
   "ar": 0,

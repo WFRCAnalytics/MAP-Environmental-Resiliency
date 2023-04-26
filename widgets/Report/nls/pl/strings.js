@@ -1,7 +1,7 @@
 ﻿define({
   root: ({
-    _widgetLabel: "Demo",
-    label1: "Wersja demo widżetu",
+    _widgetLabel: "Report",
+    label1: "Wersja report widżetu",
     label2: "Element konfigurowalny"
   }),
   "ar": 0,

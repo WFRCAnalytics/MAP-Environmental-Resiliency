@@ -1,7 +1,7 @@
 ﻿define({
   root: ({
-    _widgetLabel: "Demo",
-    label1: "Jeg er en demo-widget.",
+    _widgetLabel: "Report",
+    label1: "Jeg er en report-widget.",
     label2: "Dette kan konfigureres."
   }),
   "ar": 0,

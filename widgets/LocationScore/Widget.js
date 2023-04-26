@@ -129,7 +129,19 @@ function(declare, dom, BaseWidget, CheckBox, html, domReady, LayerInfos, Select,
 
                 _segScorePercentMax = _segScore / maxScore;
 
-                _innerHTML += "<tr><td align=\"right\">" + _segs[s].s + "</td><td align=\"right\">" + String(Math.round(_segScorePercentMax*100)) + "%</td><td align=\"right\">" + String(_segScore.toFixed(1)) + "</td><td><small>" + _aCatScores.map(item => "<td align=\"right\">" + item.toFixed(1).replace('0.0', '-').replace('.0', '').replace('1-', '10') + "</small></td>").join(''); + "</td></tr>";
+                var _bgColor  = lstYellowToBlue     [lstYellowToBlue.length - 1]
+                var _txtColor = lstYellowToBlue_Text[lstYellowToBlue.length - 1];
+
+                // get color for % of max
+                for (b in lstBinLows) {
+                    if(_segScorePercentMax>lstBinLows[b]) {
+                        var _bgColor  = lstYellowToBlue     [b];
+                        var _txtColor = lstYellowToBlue_Text[b]; // get opposite color for text
+                        break;
+                    }
+                }
+
+                _innerHTML += "<tr><td align=\"right\">" + _segs[s].s + "</td><td bgcolor=\"" + _bgColor + ";\" align=\"right\"><span style=\"color:" + _txtColor + ";\">" + String(Math.round(_segScorePercentMax*100)) + "%</span></td><td align=\"right\">" + String(_segScore.toFixed(1)) + "</td><td><small>" + _aCatScores.map(item => "<td align=\"right\">" + item.toFixed(1).replace('0.0', '-').replace('.0', '').replace('1-', '10') + "</small></td>").join(''); + "</td></tr>";
 
                 let end = Date.now();
                 // elapsed time in milliseconds

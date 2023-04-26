@@ -4,8 +4,9 @@ var sRTPResiliencySegs_Selected = 'Line Projects' ;
 var sRTPResiliencyPnts_Selected = 'Point Projects';
 
 // bins for scoring based on percent of max and bins for coloring layers
-var lstBinLows      = [0.95     , 0.85     , 0.60     , 0.30     , 0.00     ];
-var lstYellowToBlue = ["#031273", "#2c7fb8", "#52c7d5", "#a1dab4", "#ffffcc"];
+var lstBinLows           = [0.95     , 0.85     , 0.60     , 0.30     , 0.00     ];
+var lstYellowToBlue      = ["#031273", "#2c7fb8", "#52c7d5", "#a1dab4", "#ffffcc"];
+var lstYellowToBlue_Text = ["#FFFFFF", "#000000", "#FFFFFF", "#FFFFFF", "#000000"];
 
 var fltrMode = 'All';
 var curBuffer = 100; // default buffer

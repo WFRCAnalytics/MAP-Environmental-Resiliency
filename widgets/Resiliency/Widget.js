@@ -320,18 +320,22 @@ define(['dojo/_base/declare',
       },
 
       _readWithinCurBuffer: function() {
+        curCatBuffers = wR._getCatBuffers();
         console.log('_readWithinCurBuffer');
         if (typeof dCats !== "undefined") {
           ctCats = 0;
           dWithinBuffers = [];
           dWithinBuffersIndex = [];
           for (c in dCats) {
-            wR._readWithinBuffers(wR._getCatBuffer(),dCats[c].CategoryCode);
+            wR._readWithinBuffers(curCatBuffers[c],dCats[c].CategoryCode);
           }
         }
       },
 
       _readWithinBuffers: function(_buf,_cat) {
+        if (typeof _buf==="undefined") {
+          _buf = curBuffer;
+        }
         console.log('_readWithinBuffers: buffer: ' + String(_buf) + ' category: ' + _cat);
         // Populate distances object
         dojo.xhrGet({
@@ -925,12 +929,14 @@ define(['dojo/_base/declare',
 
             // initial value is curBuffer
             mySelect_Buffer.value = curBuffer;
+            curCatBuffers.push(curBuffer);
 
             mySelect_Buffer.classList.add("my-dropdown");
             mySelect_Buffer.id = "buffer" + dCats[c].CategoryCode;
 
             mySelect_Buffer.addEventListener("change", function() {
               console.log("category buffer onChange");
+              wR._readWithinCurBuffer();
               wR._dirtyQuery();
             });
 
@@ -955,8 +961,7 @@ define(['dojo/_base/declare',
             });
 
             dom.byId(divCatName).appendChild(mySelect_MaxOut);
-            
-            
+            dojo.place("<br/>", divCatName)
             dojo.place("<br/>", divCatName)
 
             for (l in _layers) {
@@ -1018,7 +1023,9 @@ define(['dojo/_base/declare',
         var _lstCatBuffers = [];
         for (c in dCats) {
           var wd = dom.byId('buffer' + dCats[c].CategoryCode);
-          _lstCatBuffers.push(parseInt(wd.value));
+          if (wd!==null) {
+            _lstCatBuffers.push(parseInt(wd.value));
+          }
         }
         return _lstCatBuffers;
       },

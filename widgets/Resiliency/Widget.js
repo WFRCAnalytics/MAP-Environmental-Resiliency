@@ -40,6 +40,7 @@ var dWithinBuffersIndex = [];
 var curCheckedLayers = [];
 var curCatWeights = [];
 var curCatNumCheckedLayers = [];
+var curCatBuffers =[];
 
 var aPrjCatLength_Weighted = [];
 var segScores = [];
@@ -312,6 +313,9 @@ define(['dojo/_base/declare',
       _updateBuffer: function() {
         console.log('_updateBuffer');
         curBuffer = parseInt(dom.byId('bufferText').value);
+        for (c in dCats) {
+          dom.byId('buffer' + dCats[c].CategoryCode).value = curBuffer;
+        }
         wR._readWithinCurBuffer();
       },
 
@@ -322,7 +326,7 @@ define(['dojo/_base/declare',
           dWithinBuffers = [];
           dWithinBuffersIndex = [];
           for (c in dCats) {
-            wR._readWithinBuffers(curBuffer,dCats[c].CategoryCode);
+            wR._readWithinBuffers(wR._getCatBuffer(),dCats[c].CategoryCode);
           }
         }
       },
@@ -392,6 +396,7 @@ define(['dojo/_base/declare',
           curCatWeights          = wR._getCatWeights();
           curCatMaxOuts          = wR._getCatMaxOuts();
           curCatNumCheckedLayers = wR._getCatNumCheckedLayers();
+          curCatBuffers          = wR._getCatBuffers();
 
           let start = Date.now();
           
@@ -487,6 +492,7 @@ define(['dojo/_base/declare',
           curCatWeights          = wR._getCatWeights();
           curCatMaxOuts          = wR._getCatMaxOuts();
           curCatNumCheckedLayers = wR._getCatNumCheckedLayers();
+          curCatBuffers          = wR._getCatBuffers();
 
           let start = Date.now();
 
@@ -704,7 +710,7 @@ define(['dojo/_base/declare',
         _scoreExp += "var ctLyr    = 0;";
 
         for (c in dCats) {
-          _curbuf = String(curBuffer);
+          _curbuf = String(curCatBuffers[c]);
           _weight = String(curCatWeights[c]);
           _maxOut = curCatMaxOuts[c];
           _numChk = curCatNumCheckedLayers[c];
@@ -717,7 +723,7 @@ define(['dojo/_base/declare',
           _scoreExp += "ctLyr    = 0;";
           for (l in _lyrs) {
             if (curCheckedLayers.indexOf(_lyrs[l].LayerCode)>=0) {
-              _scoreExp += "if ($feature." + _lyrs[l].LayerCode + " >= 0 && $feature." + _lyrs[l].LayerCode + " < " + curBuffer + " && ctLyr < " + _maxOut + " && " + _divisor + ">0) {" +
+              _scoreExp += "if ($feature." + _lyrs[l].LayerCode + " >= 0 && $feature." + _lyrs[l].LayerCode + " < " + _curbuf + " && ctLyr < " + _maxOut + " && " + _divisor + ">0) {" +
                           " catScore +=  " + _weight + " / " + _divisor + ";" +
                           " ctLyr += 1;" +
                           "}";
@@ -819,7 +825,6 @@ define(['dojo/_base/declare',
 
           for (c in dCats) {
 
-
             divCatHeaderName = "catContainer" + dCats[c].CategoryCode
             var divCatHeader = domConstruct.create("div",{id:divCatHeaderName, class:"container"});
             divMenu.appendChild(divCatHeader);
@@ -889,7 +894,6 @@ define(['dojo/_base/declare',
             divCat.style.display='none';
             divMenu.appendChild(divCat);
 
-
             // layers div
             dojo.place("<div style=\"display: none;\" id=\"div" + dCats[c].CategoryCode +  "\"", divCatName);
 
@@ -898,50 +902,62 @@ define(['dojo/_base/declare',
             
             // weight heading
             //dojo.place("<br/>", divCatName);
-            dojo.place("<span>&nbsp;&nbsp;&nbsp;&nbsp;<b>Layer</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<small><b>Max Out #:</b></small>&nbsp;</span>", divCatName);
-
+            dojo.place("<span>&nbsp;&nbsp;&nbsp;&nbsp;<b>Layer</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<small><b>Buffer Override:</b></small>&nbsp;</span>", divCatName);
+            //dojo.place("<hr/>, divCatName);
             
-            //var selWeight = new Select({
-            //  id: "selectWeight" + dCats[c].CategoryCode,
-            //  options: [
-            //    { label: "10", value: "10", selected: true },
-            //    { label: "9" , value: "9"                  },
-            //    { label: "8" , value: "8"                  },
-            //    { label: "7" , value: "7"                  },
-            //    { label: "6" , value: "6"                  },
-            //    { label: "5" , value: "5"                  },
-            //    { label: "4" , value: "4"                  },
-            //    { label: "3" , value: "3"                  },
-            //    { label: "2" , value: "2"                  },
-            //    { label: "1" , value: "1"                  },
-            //    { label: "0" , value: "0"                  }
-            //  ],
-            //  class: "my-dropdown",
-            //  onChange: function(newValue){
-            //    console.log("weight onChange");
-            //    wR._updateCatTitle(this.id.slice(-2),this.value);
-            //    wR._dirtyQuery();
-            //  }
-            //}).placeAt(divCatName);
+            // Create a new select element
+            var mySelect_Buffer = document.createElement("select");
 
+            var mySelect_Buffer_options =  [{value:100,text:"100"},
+                                            {value:200,text:"200"},
+                                            {value:300,text:"300"},
+                                            {value:400,text:"400"},
+                                            {value:500,text:"500"},
+                                            {value:600,text:"600"}];
+
+            // Loop through options and add them to select element
+            for (var i = 0; i < mySelect_Buffer_options.length; i++) {
+              var option = document.createElement("option");
+              option.value = mySelect_Buffer_options[i].value;
+              option.text  = mySelect_Buffer_options[i].text;
+              mySelect_Buffer.add(option);
+            }
+
+            // initial value is curBuffer
+            mySelect_Buffer.value = curBuffer;
+
+            mySelect_Buffer.classList.add("my-dropdown");
+            mySelect_Buffer.id = "buffer" + dCats[c].CategoryCode;
+
+            mySelect_Buffer.addEventListener("change", function() {
+              console.log("category buffer onChange");
+              wR._dirtyQuery();
+            });
+
+            dom.byId(divCatName).appendChild(mySelect_Buffer);
+
+            dojo.place("<span>&nbsp;&nbsp;<div id=\"maxoutLabel" + dCats[c].CategoryCode + "\" style=\"display: inline;\"><small><b>Max Out #:</b></small></div>&nbsp;</span>", divCatName);
 
             _layers = dLyrs.filter(o => o['CategoryCode'] == dCats[c].CategoryCode);
             _numlayers = _layers.length;
-            // layers heading
-
-            //dojo.place("<hr/>, divCatName);
-
-            var selMaxOut = new Select({
-              id: "maxout" + dCats[c].CategoryCode,
-              onChange: function(newValue){
-                console.log("maxout onChange");
-                wR._updateLayerDisplay();
-                wR._dirtyQuery();
-              }
-            }).placeAt(divCatName);
 
 
-            //dojo.place("<hr/>", divCatName)
+            // Create a new select element
+            var mySelect_MaxOut = document.createElement("select");
+
+            mySelect_MaxOut.classList.add("my-dropdown");
+            mySelect_MaxOut.id = "maxout" + dCats[c].CategoryCode;
+
+            mySelect_MaxOut.addEventListener("change", function() {
+              console.log("maxout onChange");
+              wR._updateLayerDisplay();
+              wR._dirtyQuery();
+            });
+
+            dom.byId(divCatName).appendChild(mySelect_MaxOut);
+            
+            
+            dojo.place("<br/>", divCatName)
 
             for (l in _layers) {
               //dojo.place("<p style=\"display:inline\">&nbsp;&nbsp;</p>", divCatName);
@@ -950,11 +966,19 @@ define(['dojo/_base/declare',
               divCat.appendChild(divToggle);
               var _checkbox = "<span>&nbsp;&nbsp;&nbsp;&nbsp;<input type=\"checkbox\" id=\"chk" + _layers[l].LayerCode + "\" checked data-dojo-type=\"dijit/form/CheckBox\"> <label for=\"chk" + _layers[l].LayerCode + "\">" + _layers[l].ListName + "</label></span><br/>";
               dojo.place(_checkbox, divToggle);
-              selMaxOut.addOption({ value: String(_numlayers - l), label: String(_numlayers - l) }); // add all options at once as an array
+              var option = document.createElement("option");
+              option.value = String(_numlayers - l);
+              option.text  = String(_numlayers - l);
+              mySelect_MaxOut.add(option);
             }
 
-            selMaxOut.set("value",Math.min(4,_numlayers))
-            selMaxOut.startup();
+            mySelect_MaxOut.value = Math.min(4,_numlayers);
+
+            if (_layers.length<=1) {
+              // Hide the select element
+              mySelect_MaxOut.style.display = "none";
+              dom.byId("maxoutLabel" + dCats[c].CategoryCode).style.display = "none";
+            }
 
             dojo.place("<br/>", divCatName)
           }
@@ -987,6 +1011,16 @@ define(['dojo/_base/declare',
           _lstCatWeights.push(parseInt(wd.value));
         }
         return _lstCatWeights;
+      },
+
+      _getCatBuffers: function() {
+        console.log('_getCatBuffers');
+        var _lstCatBuffers = [];
+        for (c in dCats) {
+          var wd = dom.byId('buffer' + dCats[c].CategoryCode);
+          _lstCatBuffers.push(parseInt(wd.value));
+        }
+        return _lstCatBuffers;
       },
 
       _getCatMaxOuts: function() {
@@ -1037,6 +1071,7 @@ define(['dojo/_base/declare',
         curCatWeights          = wR._getCatWeights();
         curCatMaxOuts          = wR._getCatMaxOuts();
         curCatNumCheckedLayers = wR._getCatNumCheckedLayers();
+        curCatBuffers          = wR._getCatBuffers();
 
         var layerInfosObject = LayerInfos.getInstanceSync();
         

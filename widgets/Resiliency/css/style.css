@@ -65,7 +65,8 @@ div {
 }
 
 .dijitSelectLabel {
-  width: 15px;
+  padding: 1px; 
+  width: 22px;
   overflow: hidden;
 }
 

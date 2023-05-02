@@ -109,9 +109,9 @@ define(['dojo/_base/declare',
         this.inherited(arguments);
         //this.mapIdNode.innerHTML = 'map id:' + this.map.id;
         console.log('startup');
-
+        
         wR = this;
-        this.map.setInfoWindowOnClick(false); // turn off info window (popup) when clicking a feature
+        wR.map.setInfoWindowOnClick(false); // turn off info window (popup) when clicking a feature
 
         // Initialize Selection Layer, FromLayer, and ToLayer and define selection colors
         var layerInfosObject = LayerInfos.getInstanceSync();
@@ -209,7 +209,7 @@ define(['dojo/_base/declare',
         });
 
         //setup click functionality
-        this.map.on('click', __selectProject);
+        wR.map.on('click', __selectProject);
 
         function pointToExtent(map, point, toleranceInPixel) {
           var pixelWidth = wR.map.extent.getWidth() / wR.map.width;
@@ -292,14 +292,15 @@ define(['dojo/_base/declare',
         dom.byId("opa").innerHTML = ((curOpacity)*100).toFixed(0) + "%"
         horizSlider.startup();
 
+
       },
 
       _updateClickMode: function() {
         console.log('_updateClickMode');
         if (dom.byId('clickMode').value=='Layers') {
-          this.map.setInfoWindowOnClick(true); // turn on info window (popup) when clicking a feature
+          wR.map.setInfoWindowOnClick(true); // turn on info window (popup) when clicking a feature
         } else if (dom.byId('clickMode').value=='Projects') {
-          this.map.setInfoWindowOnClick(false); // turn off info window (popup) when clicking a feature
+          wR.map.setInfoWindowOnClick(false); // turn off info window (popup) when clicking a feature
         }
       },
 
@@ -333,7 +334,7 @@ define(['dojo/_base/declare',
           progressBar.destroyRecursive();
         }
 
-        //Close Location Scores if open
+        //Close Project Scores if open
         var pm = PanelManager.getInstance();
         for (var p = 0; p < pm.panels.length; p++) {
           if (pm.panels[p].label == 'Project Scores' || pm.panels[p].label == 'Report') {
@@ -426,10 +427,10 @@ define(['dojo/_base/declare',
       _showLegend: function () {
         var pm = PanelManager.getInstance();
         pm.showPanel(wR.appConfig.widgetPool.widgets[WIDGETPOOLID_LEGEND]);
-        //Close Location Scores if open
+        //Close Project Scores if open
         var pm = PanelManager.getInstance();
         for (var p = 0; p < pm.panels.length; p++) {
-          if (pm.panels[p].label == 'Location Scores') {
+          if (pm.panels[p].label == 'Project Scores') {
             pm.closePanel(pm.panels[p]);
           }
         }
@@ -1066,7 +1067,7 @@ define(['dojo/_base/declare',
 
             dom.byId(divCatName).appendChild(mySelect_MaxOut);
 
-            dojo.place("<br/><br/><span>&nbsp;&nbsp;&nbsp;&nbsp;<b>Include Layers:</b></span>", divCatName);
+            dojo.place("<br/><br/><span>&nbsp;&nbsp;&nbsp;&nbsp;<b>Include Layers in Analysis:</b></span>", divCatName);
             dojo.place("<br/>", divCatName)
             dojo.place("<br/>", divCatName)
 

@@ -4,9 +4,9 @@ var sRTPResiliencySegs_Selected = 'Line Projects' ;
 var sRTPResiliencyPnts_Selected = 'Point Projects';
 
 // bins for scoring based on percent of max and bins for coloring layers
-var lstBinLows           = [0.95     , 0.85     , 0.60     , 0.30     , 0.00     ];
-var lstYellowToBlue      = ["#031273", "#2c7fb8", "#52c7d5", "#a1dab4", "#ffffcc"];
-var lstYellowToBlue_Text = ["#FFFFFF", "#000000", "#FFFFFF", "#FFFFFF", "#000000"];
+var lstBinLows           = [0.95     , 0.85     , 0.60     , 0.30     , 0.01     , 0.00     ];
+var lstYellowToBlue      = ["#031273", "#2c7fb8", "#52c7d5", "#a1dab4", "#ffffcc", "#dcdcdc"];
+var lstYellowToBlue_Text = ["#FFFFFF", "#000000", "#FFFFFF", "#FFFFFF", "#000000", "#000000"];
 
 var fltrMode = 'All';
 var curBuffer = 100; // default buffer
@@ -647,8 +647,10 @@ define(['dojo/_base/declare',
             return b[3] - a[3];
           } else if (b[4] !== a[4]) {
             return b[4] - a[4];
-          } else {
+          } else if (b[5] !== a[5]) {
             return b[5] - a[5];
+          } else {
+            return b[6] - a[6];
           }
         });
         
@@ -663,8 +665,10 @@ define(['dojo/_base/declare',
             return b[3] - a[3];
           } else if (b[4] !== a[4]) {
             return b[4] - a[4];
-          } else {
+          } else if (b[5] !== a[5]) {
             return b[5] - a[5];
+          } else {
+            return b[6] - a[6];
           }
         });
 
@@ -740,21 +744,21 @@ define(['dojo/_base/declare',
           //  sFGColor="";
           //}
           
-          _gID     = dGIds[parseInt(aSortProjects[p][5])].g;
-          _prjName = dGIds[parseInt(aSortProjects[p][5])].n;
-          _plnId   = dGIds[parseInt(aSortProjects[p][5])].p;
+          _gID     = dGIds[parseInt(aSortProjects[p][lstBinLows.length])].g;
+          _prjName = dGIds[parseInt(aSortProjects[p][lstBinLows.length])].n;
+          _plnId   = dGIds[parseInt(aSortProjects[p][lstBinLows.length])].p;
           _gIndex  = dGIds.findIndex(obj => obj.g==_gID)
 
           // check if project is in fltrMode
           if (_ctRank<=maxRankList & (fltrMode=='All' | dGIds.find(o => o['g'] == _gID).m == fltrMode)) {
             
-            var button3 = new Button({ label:String(_ctRank), id:"button_" + String(aSortProjects[p][5])});
+            var button3 = new Button({ label:String(_ctRank), id:"button_" + String(aSortProjects[p][lstBinLows.length])});
             button3.startup();
             button3.placeAt(projects);
             button3.on("click", this._clickProjectButton);
             
-            dojo.style("button_" + aSortProjects[p][5],"width","40px");
-            dojo.style("button_" + aSortProjects[p][5],"height","16px");
+            dojo.style("button_" + aSortProjects[p][lstBinLows.length],"width","40px");
+            dojo.style("button_" + aSortProjects[p][lstBinLows.length],"height","16px");
             //if (sBGColor!="") {
             //  dojo.style("button_" + aSortProjects[p][5],"background",sBGColor);
             //}
@@ -822,13 +826,15 @@ define(['dojo/_base/declare',
             "else if (score>=" + String(lstBinLows[1]) + ") { return 'class_4'; }" +
             "else if (score>=" + String(lstBinLows[2]) + ") { return 'class_3'; }" +
             "else if (score>=" + String(lstBinLows[3]) + ") { return 'class_2'; }" +
-            "else if (score>=" + String(lstBinLows[4]) + ") { return 'class_1'; }",
+            "else if (score>=" + String(lstBinLows[4]) + ") { return 'class_1'; }"+
+            "else if (score>=" + String(lstBinLows[5]) + ") { return 'class_0'; }",
           uniqueValueInfos: [
-            { value: "class_5", label: String(lstBinLows[0] * 100) +                                 "-100% of Max Score", symbol: new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color(lstYellowToBlue[0]), 5)},
-            { value: "class_4", label: String(lstBinLows[1] * 100) + "-" + String(lstBinLows[0] * 100) + "% of Max Score", symbol: new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color(lstYellowToBlue[1]), 4)},
-            { value: "class_3", label: String(lstBinLows[2] * 100) + "-" + String(lstBinLows[1] * 100) + "% of Max Score", symbol: new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color(lstYellowToBlue[2]), 3)},
-            { value: "class_2", label: String(lstBinLows[3] * 100) + "-" + String(lstBinLows[2] * 100) + "% of Max Score", symbol: new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color(lstYellowToBlue[3]), 2)},
-            { value: "class_1", label: String(lstBinLows[4] * 100) + "-" + String(lstBinLows[3] * 100) + "% of Max Score", symbol: new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color(lstYellowToBlue[4]), 1)}
+            { value: "class_5", label: String(lstBinLows[0] * 100) +                                 "-100% of Max Score", symbol: new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color(lstYellowToBlue[0]), 5   )},
+            { value: "class_4", label: String(lstBinLows[1] * 100) + "-" + String(lstBinLows[0] * 100) + "% of Max Score", symbol: new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color(lstYellowToBlue[1]), 4   )},
+            { value: "class_3", label: String(lstBinLows[2] * 100) + "-" + String(lstBinLows[1] * 100) + "% of Max Score", symbol: new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color(lstYellowToBlue[2]), 3   )},
+            { value: "class_2", label: String(lstBinLows[3] * 100) + "-" + String(lstBinLows[2] * 100) + "% of Max Score", symbol: new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color(lstYellowToBlue[3]), 2   )},
+            { value: "class_1", label: String(lstBinLows[4] * 100) + "-" + String(lstBinLows[3] * 100) + "% of Max Score", symbol: new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color(lstYellowToBlue[4]), 1   )},
+            { value: "class_0", label: "No Impact"                                                                       , symbol: new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color(lstYellowToBlue[5]), 0.25)}
           ]
         });
         var vcUVRenderer_pnt = new UniqueValueRenderer({
@@ -839,13 +845,15 @@ define(['dojo/_base/declare',
             "else if (score>=" + String(lstBinLows[1]) + ") { return 'class_4'; }" +
             "else if (score>=" + String(lstBinLows[2]) + ") { return 'class_3'; }" +
             "else if (score>=" + String(lstBinLows[3]) + ") { return 'class_2'; }" +
-            "else if (score>=" + String(lstBinLows[4]) + ") { return 'class_1'; }",
+            "else if (score>=" + String(lstBinLows[4]) + ") { return 'class_1'; }" +
+            "else if (score>=" + String(lstBinLows[5]) + ") { return 'class_0'; }",
           uniqueValueInfos: [
-            { value: "class_5", label: String(lstBinLows[0] * 100) +                                 "-100% of Max Score", symbol: new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 10, new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color(lstYellowToBlue[4]), .5), new Color(lstYellowToBlue[0]))},
-            { value: "class_4", label: String(lstBinLows[1] * 100) + "-" + String(lstBinLows[0] * 100) + "% of Max Score", symbol: new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 10, new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color(lstYellowToBlue[3]), .5), new Color(lstYellowToBlue[1]))},
-            { value: "class_3", label: String(lstBinLows[2] * 100) + "-" + String(lstBinLows[1] * 100) + "% of Max Score", symbol: new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 10, new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color(lstYellowToBlue[2]), .5), new Color(lstYellowToBlue[2]))},
-            { value: "class_2", label: String(lstBinLows[3] * 100) + "-" + String(lstBinLows[2] * 100) + "% of Max Score", symbol: new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 10, new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color(lstYellowToBlue[1]), .5), new Color(lstYellowToBlue[3]))},
-            { value: "class_1", label: String(lstBinLows[4] * 100) + "-" + String(lstBinLows[3] * 100) + "% of Max Score", symbol: new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 10, new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color(lstYellowToBlue[0]), .5), new Color(lstYellowToBlue[4]))}
+            { value: "class_5", label: String(lstBinLows[0] * 100) +                                 "-100% of Max Score", symbol: new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 10, new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color(lstYellowToBlue[5]), .50), new Color(lstYellowToBlue[0]))},
+            { value: "class_4", label: String(lstBinLows[1] * 100) + "-" + String(lstBinLows[0] * 100) + "% of Max Score", symbol: new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 10, new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color(lstYellowToBlue[4]), .50), new Color(lstYellowToBlue[1]))},
+            { value: "class_3", label: String(lstBinLows[2] * 100) + "-" + String(lstBinLows[1] * 100) + "% of Max Score", symbol: new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 10, new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color(lstYellowToBlue[3]), .50), new Color(lstYellowToBlue[2]))},
+            { value: "class_2", label: String(lstBinLows[3] * 100) + "-" + String(lstBinLows[2] * 100) + "% of Max Score", symbol: new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 10, new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color(lstYellowToBlue[2]), .50), new Color(lstYellowToBlue[3]))},
+            { value: "class_1", label: String(lstBinLows[4] * 100) + "-" + String(lstBinLows[3] * 100) + "% of Max Score", symbol: new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 10, new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color(lstYellowToBlue[1]), .50), new Color(lstYellowToBlue[4]))},
+            { value: "class_1", label: "No Impact"                                                                       , symbol: new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE,  5, new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color(lstYellowToBlue[0]), .25), new Color(lstYellowToBlue[5]))}
           ]
         });
         lyrRTPResiliencyPnts.setRenderer(vcUVRenderer_pnt);

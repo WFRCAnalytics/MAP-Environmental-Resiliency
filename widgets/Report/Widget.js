@@ -97,22 +97,25 @@ function(declare, BaseWidget, dom) {
       _maxRankShow = dom.byId('maxrank').value;
       
       // variable holding all html for report, starting as table
-  
       var _innerHTML = '<table id="reporttable" style="color: black;"><tr bgcolor=\"#00008b\">';
-      _innerHTML += "<td width=2%  align=\"center\" style=\"color: white;\">Rank</td>"
-      _innerHTML += "<td width=5%  align=\"center\" style=\"color: white;\">ID  </td>"
-      _innerHTML += "<td width=27% align=\"center\" style=\"color: white;\">Name</td>"
-      _innerHTML += "<td width=6%  align=\"center\" style=\"color: white;\">Total Length</td>"
-      _innerHTML += "<td width=6%  align=\"center\" style=\"color: white;\">Agricultural and Farmland</td>"
-      _innerHTML += "<td width=6%  align=\"center\" style=\"color: white;\">Cultural and Historic Resources</td>"
+      _innerHTML += "<td width=2%  align=\"center\" style=\"color: white;\" rowspan=2 >Rank                </td>"
+      _innerHTML += "<td width=5%  align=\"center\" style=\"color: white;\" rowspan=2 >Plan ID             </td>"
+      _innerHTML += "<td width=27% align=\"center\" style=\"color: white;\" rowspan=2 >Name                </td>"
+      _innerHTML += "<td width=6%  align=\"center\" style=\"color: white;\" rowspan=2 >Total Length (mi)   </td>"
+      _innerHTML += "<td width=6%  align=\"center\" style=\"color: white;\" colspan=10>Impacted Length (mi)</td>"
+      _innerHTML += "</tr>"
+
+      _innerHTML += "<tr bgcolor=\"#00008b\">"
+      _innerHTML += "<td width=6%  align=\"center\" style=\"color: white;\">Agricultural and Farmland          </td>"
+      _innerHTML += "<td width=6%  align=\"center\" style=\"color: white;\">Cultural and Historic Resources    </td>"
       _innerHTML += "<td width=6%  align=\"center\" style=\"color: white;\">Environmental Justice Consideration</td>"
-      _innerHTML += "<td width=6%  align=\"center\" style=\"color: white;\">Floodplains</td>"
-      _innerHTML += "<td width=6%  align=\"center\" style=\"color: white;\">Geological Hazards</td>"
-      _innerHTML += "<td width=6%  align=\"center\" style=\"color: white;\">Habitat and Wildlife</td>"
+      _innerHTML += "<td width=6%  align=\"center\" style=\"color: white;\">Floodplains                        </td>"
+      _innerHTML += "<td width=6%  align=\"center\" style=\"color: white;\">Geological Hazards                 </td>"
+      _innerHTML += "<td width=6%  align=\"center\" style=\"color: white;\">Habitat and Wildlife               </td>"
       _innerHTML += "<td width=6%  align=\"center\" style=\"color: white;\">Hazardous Materials & Contamination</td>"
-      _innerHTML += "<td width=6%  align=\"center\" style=\"color: white;\">Hydrological</td>"
-      _innerHTML += "<td width=6%  align=\"center\" style=\"color: white;\">Open Space, Parks, and Recreation</td>"
-      _innerHTML += "<td width=6%  align=\"center\" style=\"color: white;\">Steep Slopes</td>"
+      _innerHTML += "<td width=6%  align=\"center\" style=\"color: white;\">Hydrological                       </td>"
+      _innerHTML += "<td width=6%  align=\"center\" style=\"color: white;\">Open Space, Parks, and Recreation  </td>"
+      _innerHTML += "<td width=6%  align=\"center\" style=\"color: white;\">Steep Slopes                       </td>"
       _innerHTML += "</tr>"
 
       // weights

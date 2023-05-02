@@ -6,7 +6,7 @@ var sRTPResiliencyPnts_Selected = 'Point Projects';
 // bins for scoring based on percent of max and bins for coloring layers
 var lstBinLows           = [0.95     , 0.85     , 0.60     , 0.30     , 0.01     , 0.00     ];
 var lstYellowToBlue      = ["#031273", "#2c7fb8", "#52c7d5", "#a1dab4", "#ffffcc", "#dcdcdc"];
-var lstYellowToBlue_Text = ["#FFFFFF", "#000000", "#FFFFFF", "#FFFFFF", "#000000", "#000000"];
+var lstYellowToBlue_Text = ["#FFFFFF", "#FFFFFF", "#FFFFFF", "#000000", "#000000", "#000000"];
 
 var fltrMode = 'All';
 var curBuffer = 100; // default buffer
@@ -111,7 +111,7 @@ define(['dojo/_base/declare',
         console.log('startup');
 
         wR = this;
-        //this.map.setInfoWindowOnClick(false); // turn off info window (popup) when clicking a feature
+        this.map.setInfoWindowOnClick(false); // turn off info window (popup) when clicking a feature
 
         // Initialize Selection Layer, FromLayer, and ToLayer and define selection colors
         var layerInfosObject = LayerInfos.getInstanceSync();
@@ -226,6 +226,10 @@ define(['dojo/_base/declare',
         function __selectProject(evt) {
           console.log('__selectProject');
 
+          if (dom.byId('clickMode').value!='Projects') {
+            return;
+          }
+
           // only run if results populated
           if(dom.byId('resultsheader').style.display=='') {
                       
@@ -288,6 +292,15 @@ define(['dojo/_base/declare',
         dom.byId("opa").innerHTML = ((curOpacity)*100).toFixed(0) + "%"
         horizSlider.startup();
 
+      },
+
+      _updateClickMode: function() {
+        console.log('_updateClickMode');
+        if (dom.byId('clickMode').value=='Layers') {
+          this.map.setInfoWindowOnClick(true); // turn on info window (popup) when clicking a feature
+        } else if (dom.byId('clickMode').value=='Projects') {
+          this.map.setInfoWindowOnClick(false); // turn off info window (popup) when clicking a feature
+        }
       },
 
       _dirtyQuery: function() {

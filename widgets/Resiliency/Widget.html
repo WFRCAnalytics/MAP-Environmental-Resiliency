@@ -74,19 +74,6 @@
       <tr>
         <td>
           <p class="thicker">Rank by: </p>
-        </td>
-        <td rowspan=2 width="50%">
-          <span class="thicker"><b>Filter by Mode:</b></span>
-          <select id="fltrMode" data-dojo-type="dijit/form/Select" data-dojo-attach-event="onChange: _updateFltrMode">
-            <option value="All"                  >All                  </option>
-            <option value="Active Transportation">Active Transportation</option>
-            <option value="Highway"              >Highway              </option>
-            <option value="Transit"              >Transit              </option>
-          </select>
-        </td>
-      </tr>
-      <tr>
-        <td>
           <form style="display:inline">
             <input type="radio" name="resultsSort" value="length" id="rbgResultsSortLength" data-dojo-attach-event="onClick: _changeResultsSort" checked>
             <label for="rbgResultsSortLength"><b>Length</b></label>
@@ -94,6 +81,21 @@
             <input type="radio" name="resultsSort" value="percent" id="rbgResultsSortPercent" data-dojo-attach-event="onClick: _changeResultsSort">
             <label for="rbgResultsSortPercent"><b>Percent</b></label>
           </form>
+        </td>
+        <td width="50%">
+          <span class="thicker"><b>Filter by Mode:</b></span>
+          <select id="fltrMode" data-dojo-type="dijit/form/Select" data-dojo-attach-event="onChange: _updateFltrMode">
+            <option value="All"                  >All                  </option>
+            <option value="Active Transportation">Active Transportation</option>
+            <option value="Highway"              >Highway              </option>
+            <option value="Transit"              >Transit              </option>
+          </select>
+          <br/><br/>
+          <span class="thicker"><b>Clicking on Map:</b></span>
+          <select id="clickMode" data-dojo-type="dijit/form/Select" data-dojo-attach-event="onChange: _updateClickMode">
+            <option value="Projects">Queries Project Scores</option>
+            <option value="Layers"  >Queries Layers Info   </option>
+          </select>
         </td>
       </tr>
     </table>

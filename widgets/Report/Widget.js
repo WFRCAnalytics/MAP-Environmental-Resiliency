@@ -129,9 +129,9 @@ function(declare, BaseWidget, dom) {
         }
         _ctElements++;
         
-        _gID     = dGIds[parseInt(aSortProjects[p][5])].g;
-        _prjName = dGIds[parseInt(aSortProjects[p][5])].n;
-        _plnId   = dGIds[parseInt(aSortProjects[p][5])].p;
+        _gID     = dGIds[parseInt(aSortProjects[p][lstBinLows.length])].g;
+        _prjName = dGIds[parseInt(aSortProjects[p][lstBinLows.length])].n;
+        _plnId   = dGIds[parseInt(aSortProjects[p][lstBinLows.length])].p;
         _gIndex  = dGIds.findIndex(obj => obj.g==_gID)
 
         if (_ctRank<=_maxRankShow & (fltrMode=='All' | dGIds.find(o => o['g'] == _gID).m == fltrMode)) {

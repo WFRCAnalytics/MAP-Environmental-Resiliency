@@ -13,6 +13,8 @@ var curBuffer = 100; // default buffer
 var curResultSort = 'length';
 var segLengthMiles = 0.125; // from the data prep notebook
 
+var maxRankList = 25;
+
 var jsonCats = 'widgets/Resiliency/data/cats.json'
 var jsonLyrs = 'widgets/Resiliency/data/lyrs.json'
 var jsonSegs = 'widgets/Resiliency/data/segs.json'
@@ -675,7 +677,40 @@ define(['dojo/_base/declare',
           aSortProjects = aPrjBinCumLengthsPercent;
         }
 
-        dojo.place("<hr\><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Rank&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Plan ID and Project Name</b><hr\>", "projects");
+        dojo.place("<hr\><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Rank&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Plan ID - Project Name</b>&nbsp;&nbsp;&nbsp;&nbsp;", "projects");
+        
+        // Create a new select element
+        var mySelect_ShowPrj = document.createElement("select");
+
+        var mySelect_ShowPrj_options =  [{value:10   ,text:"Top 10"   },
+                                         {value:25   ,text:"Top 25"   },
+                                         {value:100  ,text:"Top 100"  },
+                                         {value:1000 ,text:"Top 1,000"},
+                                         {value:10000,text:"All"      }];
+
+        // Loop through options and add them to select element
+        for (var i = 0; i < mySelect_ShowPrj_options.length; i++) {
+          var option = document.createElement("option");
+          option.value = mySelect_ShowPrj_options[i].value;
+          option.text  = mySelect_ShowPrj_options[i].text;
+          mySelect_ShowPrj.add(option);
+        }
+
+        // initial value is curBuffer
+        mySelect_ShowPrj.value = maxRankList;
+
+        mySelect_ShowPrj.classList.add("my-dropdown");
+        mySelect_ShowPrj.id = "ddShowPrj";
+
+        mySelect_ShowPrj.addEventListener("change", function() {
+          console.log("ddShowPrj onChange");
+          maxRankList = this.value;
+          wR._updateResults();
+        });
+
+        dom.byId(divProjects).appendChild(mySelect_ShowPrj);
+
+        dojo.place("<hr\>", "projects");
 
         for (p=0; p<aSortProjects.length; p++) {
 
@@ -711,7 +746,7 @@ define(['dojo/_base/declare',
           _gIndex  = dGIds.findIndex(obj => obj.g==_gID)
 
           // check if project is in fltrMode
-          if (fltrMode=='All' | dGIds.find(o => o['g'] == _gID).m == fltrMode) {
+          if (_ctRank<=maxRankList & (fltrMode=='All' | dGIds.find(o => o['g'] == _gID).m == fltrMode)) {
             
             var button3 = new Button({ label:String(_ctRank), id:"button_" + String(aSortProjects[p][5])});
             button3.startup();

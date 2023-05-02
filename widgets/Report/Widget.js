@@ -93,6 +93,8 @@ function(declare, BaseWidget, dom) {
 
     _updateReport: function() {
       console.log('_updateReport')
+
+      _maxRankShow = dom.byId('maxrank').value;
       
       // variable holding all html for report, starting as table
   
@@ -132,7 +134,7 @@ function(declare, BaseWidget, dom) {
         _plnId   = dGIds[parseInt(aSortProjects[p][5])].p;
         _gIndex  = dGIds.findIndex(obj => obj.g==_gID)
 
-        if (fltrMode=='All' | dGIds.find(o => o['g'] == _gID).m == fltrMode) {
+        if (_ctRank<=_maxRankShow & (fltrMode=='All' | dGIds.find(o => o['g'] == _gID).m == fltrMode)) {
             
           // color odd rows
           if (_ctRow % 2 !== 0) {

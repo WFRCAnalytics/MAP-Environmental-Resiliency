@@ -123,6 +123,15 @@ function(declare, BaseWidget, dom) {
       _innerHTML += "<td></td>"
       _innerHTML += "<td></td>"
       _innerHTML += "<td></td>"
+      _innerHTML += "<td align=\"center\">Buffer (ft):</td>"
+      _innerHTML += curCatBuffers.map(item => "<td align=\"center\">" + item.toFixed(0) + "</td>").join(''); + "</td>";
+      _innerHTML += "</tr>"
+
+      // weights
+      _innerHTML += "<tr bgcolor=\"#cccccc\">"
+      _innerHTML += "<td></td>"
+      _innerHTML += "<td></td>"
+      _innerHTML += "<td></td>"
       _innerHTML += "<td align=\"center\">Weight:</td>"
       _innerHTML += curCatWeights.map(item => "<td align=\"center\">" + item.toFixed(0) + "</td>").join(''); + "</td>";
       _innerHTML += "</tr>"

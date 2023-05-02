@@ -320,7 +320,7 @@ define(['dojo/_base/declare',
         //Close Location Scores if open
         var pm = PanelManager.getInstance();
         for (var p = 0; p < pm.panels.length; p++) {
-          if (pm.panels[p].label == 'Location Scores' || pm.panels[p].label == 'Report') {
+          if (pm.panels[p].label == 'Project Scores' || pm.panels[p].label == 'Report') {
             pm.closePanel(pm.panels[p]);
           }
         }

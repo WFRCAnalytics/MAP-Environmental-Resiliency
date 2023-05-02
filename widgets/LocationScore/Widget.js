@@ -159,8 +159,9 @@ function(declare, dom, BaseWidget, CheckBox, html, domReady, LayerInfos, Select,
         //filter out messages
         if(name !== 'Resiliency'){
             return;
-        } else{
-            wLS._updateProjectScore(data.message);
+        }
+        if (data.message !== 'report') {
+          wLS._updateProjectScore(data.message);
         }
     },
 

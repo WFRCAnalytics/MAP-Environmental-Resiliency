@@ -101,7 +101,8 @@ function(declare, BaseWidget, dom) {
       var _innerHTML = '<table id="reporttable" style="color: black;"><tr bgcolor=\"#00008b\">';
       _innerHTML += "<td width=2%  align=\"center\" style=\"color: white;\">Rank</td>"
       _innerHTML += "<td width=5%  align=\"center\" style=\"color: white;\">ID  </td>"
-      _innerHTML += "<td width=33% align=\"center\" style=\"color: white;\">Name</td>"
+      _innerHTML += "<td width=27% align=\"center\" style=\"color: white;\">Name</td>"
+      _innerHTML += "<td width=6%  align=\"center\" style=\"color: white;\">Total Length</td>"
       _innerHTML += "<td width=6%  align=\"center\" style=\"color: white;\">Agricultural and Farmland</td>"
       _innerHTML += "<td width=6%  align=\"center\" style=\"color: white;\">Cultural and Historic Resources</td>"
       _innerHTML += "<td width=6%  align=\"center\" style=\"color: white;\">Environmental Justice Consideration</td>"
@@ -112,6 +113,15 @@ function(declare, BaseWidget, dom) {
       _innerHTML += "<td width=6%  align=\"center\" style=\"color: white;\">Hydrological</td>"
       _innerHTML += "<td width=6%  align=\"center\" style=\"color: white;\">Open Space, Parks, and Recreation</td>"
       _innerHTML += "<td width=6%  align=\"center\" style=\"color: white;\">Steep Slopes</td>"
+      _innerHTML += "</tr>"
+
+      // weights
+      _innerHTML += "<tr bgcolor=\"#cccccc\">"
+      _innerHTML += "<td></td>"
+      _innerHTML += "<td></td>"
+      _innerHTML += "<td></td>"
+      _innerHTML += "<td align=\"center\">Weight:</td>"
+      _innerHTML += curCatWeights.map(item => "<td align=\"center\">" + item.toFixed(0) + "</td>").join(''); + "</td>";
       _innerHTML += "</tr>"
 
       var _ctRank = 1;
@@ -132,8 +142,9 @@ function(declare, BaseWidget, dom) {
         _gID     = dGIds[parseInt(aSortProjects[p][lstBinLows.length])].g;
         _prjName = dGIds[parseInt(aSortProjects[p][lstBinLows.length])].n;
         _plnId   = dGIds[parseInt(aSortProjects[p][lstBinLows.length])].p;
+        _prjLen  = aPrjLength[parseInt(aSortProjects[p][lstBinLows.length])]
         _gIndex  = dGIds.findIndex(obj => obj.g==_gID)
-
+        
         if (_ctRank<=_maxRankShow & (fltrMode=='All' | dGIds.find(o => o['g'] == _gID).m == fltrMode)) {
             
           // color odd rows
@@ -143,9 +154,10 @@ function(declare, BaseWidget, dom) {
             _innerHTML += "<tr bgcolor=\"#FFFFFF\">"
           }
 
-          _innerHTML += "<td align=\"center\">" + String(_ctRank) + "</td>"
-          _innerHTML += "<td align=\"center\">" + _plnId          + "</td>"
-          _innerHTML += "<td                 >" + _prjName        + "</td>"
+          _innerHTML += "<td align=\"center\">" + String(_ctRank)    + "</td>"
+          _innerHTML += "<td align=\"center\">" + _plnId             + "</td>"
+          _innerHTML += "<td                 >" + _prjName           + "</td>"
+          _innerHTML += "<td align=\"center\">" + _prjLen.toFixed(1) + "</td>"
           _innerHTML += aPrjCatLength_Weighted[_gIndex].map(item => "<td align=\"center\">" + item.toFixed(1).replace('0.0', '-').replace('.0', '').replace('1-', '10') + "</td>").join(''); + "</td>";
           _innerHTML += "</tr>"
           

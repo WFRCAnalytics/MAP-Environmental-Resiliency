@@ -45,6 +45,7 @@ var curCatNumCheckedLayers = [];
 var curCatBuffers =[];
 
 var aPrjCatLength_Weighted = [];
+var aPrjLength = [];
 var segScores = [];
 
 var maxScore = 0; // max score of all segments... used for calculating bins and percentages, which are all relative to max
@@ -458,6 +459,7 @@ define(['dojo/_base/declare',
     
           // project array of the length of each impact per category
           aPrjCatLength_Weighted = [];
+          aPrjLength = [];
 
           // loop through all GIS_IDs
           for (g in dGIds) {
@@ -467,12 +469,14 @@ define(['dojo/_base/declare',
 
             // segment array of the length of each impact per category
             _catLength_Weighted = new Array(dCats.length).fill(0);
+            var _len = 0;
 
             //window.requestAnimationFrame();
             var _segs = dSegs.filter(o => o['g'] == dGIds[g].g);
             // loop through all sequences
             // search for seqs for GIds
             for (s in _segs) {
+              _len += segLengthMiles;
               _segScore = 0;
               var _index = dGIds[g].g + '_' + _segs[s].s;
               for (c in dCats) {
@@ -504,6 +508,7 @@ define(['dojo/_base/declare',
               maxScore = Math.max(maxScore,_segScore);
             }
             aPrjCatLength_Weighted.push(_catLength_Weighted);
+            aPrjLength.push(_len);
           }
           let end = Date.now();
           // elapsed time in milliseconds

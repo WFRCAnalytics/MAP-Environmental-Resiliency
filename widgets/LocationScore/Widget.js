@@ -141,7 +141,7 @@ function(declare, dom, BaseWidget, CheckBox, html, domReady, LayerInfos, Select,
                     }
                 }
 
-                _innerHTML += "<tr><td align=\"right\">" + _segs[s].s + "</td><td bgcolor=\"" + _bgColor + ";\" align=\"right\"><span style=\"color:" + _txtColor + ";\">" + String(Math.round(_segScorePercentMax*100)) + "%</span></td><td align=\"right\">" + String(_segScore.toFixed(1)) + "</td><td><small>" + _aCatScores.map(item => "<td align=\"right\">" + item.toFixed(1).replace('0.0', '-').replace('.0', '').replace('1-', '10') + "</small></td>").join(''); + "</td></tr>";
+                _innerHTML += "<tr><td align=\"right\">" + _segs[s].s + "</td><td style=\"background-color:" + _bgColor + ";\" align=\"right\"><span style=\"color:" + _txtColor + ";\">" + String(Math.round(_segScorePercentMax*100)) + "%</span></td><td align=\"right\">" + String(_segScore.toFixed(1)) + "</td><td><small>" + _aCatScores.map(item => "<td align=\"right\">" + item.toFixed(1).replace('0.0', '-').replace('.0', '').replace('1-', '10') + "</small></td>").join(''); + "</td></tr>";
 
                 let end = Date.now();
                 // elapsed time in milliseconds

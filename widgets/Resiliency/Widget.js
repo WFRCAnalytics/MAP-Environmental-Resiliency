@@ -49,6 +49,8 @@ var maxScore = 0; // max score of all segments... used for calculating bins and 
 
 var curOpacity = 0.55;
 
+var iPixelSelectionTolerance = 10;
+
 //https://colors.artyclick.com/color-names-dictionary/color-names/light-navy-blue-color#:~:text=The%20color%20Light%20Navy%20Blue%20corresponds%20to%20the%20hex%20code%20%232E5A88.
 var dBlues11bg = ["#FFFFFF","#DFE8F1","#C2D3E4","#A7BED7","#8EABC9","#7798BC","#6287AF","#4E76A1","#3D6794","#2D5987","#2D5987"]
 var dBlues11fg = ["#2D5987","#2D5987","#2D5987","#2D5987","#FFFFFF","#FFFFFF","#DFE8F1","#DFE8F1","#DFE8F1","#DFE8F1","#DFE8F1"]
@@ -204,7 +206,7 @@ define(['dojo/_base/declare',
         });
 
         //setup click functionality
-        this.map.on('click', selectParcelPiece);
+        this.map.on('click', __selectProject);
 
         function pointToExtent(map, point, toleranceInPixel) {
           var pixelWidth = wR.map.extent.getWidth() / wR.map.width;
@@ -218,8 +220,50 @@ define(['dojo/_base/declare',
 
         //Setup function for selecting communities and parcels
 
-        function selectParcelPiece(evt) {
-          console.log('selectParcelPiece');
+        function __selectProject(evt) {
+          console.log('__selectProject');
+
+          // only run if results populated
+          if(dom.byId('resultsheader').style.display=='') {
+                      
+            var query = new Query();  
+            query.geometry = pointToExtent(parent.map, evt.mapPoint, iPixelSelectionTolerance);
+            query.returnGeometry = false;
+            query.outFields = ["*"];
+
+            var tblqueryLine  = new QueryTask(lyrRTPResiliencySegs.url);
+            var tblqueryPoint = new QueryTask(lyrRTPResiliencyPnts.url);
+            
+            //execute query
+            tblqueryLine.execute(query,__showLineResults);
+            setTimeout(function(){ tblqueryLine .execute(query,__showLineResults ); }, 500); //Use timeout function to execute segment query after intersection
+            //execute query
+            tblqueryPoint.execute(query,__showPointResults);
+            setTimeout(function(){ tblqueryPoint.execute(query,__showPointResults); }, 500); //Use timeout function to execute segment query after intersection
+            
+            //Line search results
+            function __showLineResults (results) {
+              console.log('__showLineResults');
+              var resultCount = results.features.length;
+              if (resultCount>0) {
+                var featureAttributes = results.features[0].attributes;
+                var _gid = featureAttributes["GIS_ID"];
+                wR._zoomToProjectAndShowScore(_gid,'seg',false);
+              }
+            }
+
+            //Point search results
+            function __showPointResults (results) {
+              console.log('__showPointResults');
+              var resultCount = results.features.length;
+              if (resultCount>0) {
+                var featureAttributes = results.features[0].attributes;
+                var _gid = featureAttributes["GIS_ID"];
+                wR._zoomToProjectAndShowScore(_gid,'pnt',false);
+              }
+            }
+          }
+
         }
 
 
@@ -672,7 +716,7 @@ define(['dojo/_base/declare',
             var button3 = new Button({ label:String(_ctRank), id:"button_" + String(aSortProjects[p][5])});
             button3.startup();
             button3.placeAt(projects);
-            button3.on("click", this._zoomToProjectAndShowScore);
+            button3.on("click", this._clickProjectButton);
             
             dojo.style("button_" + aSortProjects[p][5],"width","40px");
             dojo.style("button_" + aSortProjects[p][5],"height","16px");
@@ -685,8 +729,7 @@ define(['dojo/_base/declare',
 
             //var _strAdditionalText = " <small>" + aPrjCatLength_Weighted[_gIndex].map(ele => ele.toFixed(1)) + "</small>";
             var _strAdditionalText = ""
-            dojo.place("<div class = \"projectitem\" >&nbsp;&nbsp;" + _plnId + ': ' + _prjName + _strAdditionalText + "</div></br>", "projects");
-            
+            dojo.place("<div class = \"projectitem\" >&nbsp;&nbsp;" + _plnId + ': ' + _prjName + _strAdditionalText + "</div></br>", "projects");            
           }
 
           //dojo.create("div", { id:, innerHTML: "<p>hi</p>" }, "divResults");
@@ -906,7 +949,7 @@ define(['dojo/_base/declare',
             
             // weight heading
             //dojo.place("<br/>", divCatName);
-            dojo.place("<span>&nbsp;&nbsp;&nbsp;&nbsp;<b>Layer</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<small><b>Buffer Override:</b></small>&nbsp;</span>", divCatName);
+            dojo.place("<span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<small><b>Buffer Override:</b></small>&nbsp;</span>", divCatName);
             //dojo.place("<hr/>, divCatName);
             
             // Create a new select element
@@ -942,7 +985,7 @@ define(['dojo/_base/declare',
 
             dom.byId(divCatName).appendChild(mySelect_Buffer);
 
-            dojo.place("<span>&nbsp;&nbsp;<div id=\"maxoutLabel" + dCats[c].CategoryCode + "\" style=\"display: inline;\"><small><b>Max Out #:</b></small></div>&nbsp;</span>", divCatName);
+            dojo.place("<span>&nbsp;&nbsp;<div id=\"maxoutLabel" + dCats[c].CategoryCode + "\" style=\"display: inline;\">&nbsp;&nbsp;&nbsp;<small><b>Max Out #:</b></small></div>&nbsp;</span>", divCatName);
 
             _layers = dLyrs.filter(o => o['CategoryCode'] == dCats[c].CategoryCode);
             _numlayers = _layers.length;
@@ -961,6 +1004,8 @@ define(['dojo/_base/declare',
             });
 
             dom.byId(divCatName).appendChild(mySelect_MaxOut);
+
+            dojo.place("<br/><br/><span>&nbsp;&nbsp;&nbsp;&nbsp;<b>Include Layers:</b></span>", divCatName);
             dojo.place("<br/>", divCatName)
             dojo.place("<br/>", divCatName)
 
@@ -995,6 +1040,7 @@ define(['dojo/_base/declare',
             };
           }
           
+          wR._updateLayerDisplay();
           wR._dirtyQuery();
         }
 
@@ -1078,7 +1124,6 @@ define(['dojo/_base/declare',
         curCatWeights          = wR._getCatWeights();
         curCatMaxOuts          = wR._getCatMaxOuts();
         curCatNumCheckedLayers = wR._getCatNumCheckedLayers();
-        curCatBuffers          = wR._getCatBuffers();
 
         var layerInfosObject = LayerInfos.getInstanceSync();
         
@@ -1127,16 +1172,20 @@ define(['dojo/_base/declare',
         }
       },
 
-      _zoomToProjectAndShowScore: function() {
-        console.log('_zoomToProjectAndShowScore');
+      _clickProjectButton: function() {
         var _gid = dGIds[this.id.substring(this.id.indexOf("_") + 1)].g;
         console.log('ID: ' + _gid);
+        wR._zoomToProjectAndShowScore(_gid,dGIds[this.id.substring(this.id.indexOf("_") + 1)].x,true);
+      },
         
-        if (dGIds[this.id.substring(this.id.indexOf("_") + 1)].x=='seg') {
+      _zoomToProjectAndShowScore: function(_gid,_type,_zoom) {
+        console.log('_zoomToProjectAndShowScore');
+
+        if (_type=='seg') {
           queryTask = new esri.tasks.QueryTask(lyrRTPResiliencySegs.url);
           lyrRTPResiliencySegs_Selected.setDefinitionExpression("GIS_ID = '" + _gid + "'");
           lyrRTPResiliencyPnts_Selected.setDefinitionExpression("GIS_ID = 'NONE'");
-        } else if (dGIds[this.id.substring(this.id.indexOf("_") + 1)].x=='pnt') {
+        } else if (_type=='pnt') {
           queryTask = new esri.tasks.QueryTask(lyrRTPResiliencyPnts.url);
           lyrRTPResiliencyPnts_Selected.setDefinitionExpression("GIS_ID = '" + _gid + "'");
           lyrRTPResiliencySegs_Selected.setDefinitionExpression("GIS_ID = 'NONE'");
@@ -1147,9 +1196,11 @@ define(['dojo/_base/declare',
         query.outFields = ["*"];
         query.where = "GIS_ID = '" + _gid + "'";
         
-        queryTask.execute(query, showResults);
+        if (_zoom) {
+          queryTask.execute(query, __zoomToProject);
+        }
         
-        function showResults(featureSet) {
+        function __zoomToProject(featureSet) {
           
           var feature, featureId;
           
@@ -1166,9 +1217,6 @@ define(['dojo/_base/declare',
 
               // making a union of extent or previous feature and current feature. 
               newExtent = newExtent.union(thisExtent); 
-              //graphic.setSymbol(sfs); 
-              //graphic.setInfoTemplate(popupTemplate); 
-              //wR.map.graphics.add(graphic); 
             } 
             wR.map.setExtent(newExtent.expand(1.5)); 
           } else if (featureSet.features[0].geometry.type == "point"){ 
@@ -1176,26 +1224,10 @@ define(['dojo/_base/declare',
             var point = featureSet.features[0].geometry;
             wR.map.centerAndZoom(point, 15); // Replace 'map' with your map object
           }
-          
-          //var queryseg = new Query();  
-          //queryseg.returnGeometry = false;
-          //queryseg.where = "GIS_ID  = " + featureSet.features[0].attributes[sFN_ID];;
-          //queryseg.outFields = ["*"];
-          //var selectSeg = lyrRTPResiliencySegs_Selected.selectFeatures(queryseg, FeatureLayer.SELECTION_NEW);
-          //wR.map.infoWindow.lineSymbol = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, Color.fromHex(sSelectionColor), 2);
-          //wR.map.infoWindow.setFeatures([selectSeg]);
-
         }
 
         // Open scoring widget
         var pm = PanelManager.getInstance();
-
-        //Close Segment Widget if open
-        //for (var p=0; p < pm.panels.length; p++) {
-        //    if (pm.panels[p].label == sSegWidgetLabel) {
-        //        pm.closePanel(pm.panels[p]);
-        //      }
-        //}
 
         //Open scoring widget
         pm.showPanel(wR.appConfig.widgetPool.widgets[WIDGETPOOLID_SCORE]);

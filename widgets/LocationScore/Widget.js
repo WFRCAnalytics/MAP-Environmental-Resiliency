@@ -31,9 +31,9 @@ function(declare, dom, BaseWidget, CheckBox, html, domReady, LayerInfos, Select,
         //this.mapIdNode.innerHTML = 'map id:' + this.map.id;
         console.log('startup');
         
-        wLS = this;
+        wPS = this;
         //this.map.setInfoWindowOnClick(false); // turn off info window (popup) when clicking a feature
-        //wLS._updateProjectScore();
+        //wPS._updateProjectScore();
 
                 
         var panel = this.getPanel();
@@ -41,6 +41,8 @@ function(declare, dom, BaseWidget, CheckBox, html, domReady, LayerInfos, Select,
         pos.width = 420;
         panel.setPosition(pos);
         panel.panelManager.normalizePanel(panel);
+
+        wPS._updateProjectScore(curPrj);
 
     },
 
@@ -161,7 +163,7 @@ function(declare, dom, BaseWidget, CheckBox, html, domReady, LayerInfos, Select,
             return;
         }
         if (data.message !== 'report') {
-          wLS._updateProjectScore(data.message);
+          wPS._updateProjectScore(data.message);
         }
     },
 
@@ -172,7 +174,7 @@ function(declare, dom, BaseWidget, CheckBox, html, domReady, LayerInfos, Select,
     onClose: function(){
         console.log('onClose');
 
-        wLS.publishData({
+        wPS.publishData({
             message: "remove_location"
       });
 

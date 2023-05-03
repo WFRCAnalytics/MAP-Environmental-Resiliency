@@ -12,6 +12,7 @@ var fltrMode = 'All';
 var curBuffer = 100; // default buffer
 var curResultSort = 'length';
 var segLengthMiles = 0.125; // from the data prep notebook
+var curPrj = '';
 
 var maxRankList = 25;
 
@@ -1237,6 +1238,7 @@ define(['dojo/_base/declare',
       _clickProjectButton: function() {
         var _gid = dGIds[this.id.substring(this.id.indexOf("_") + 1)].g;
         console.log('ID: ' + _gid);
+        curPrj = _gid;
         wR._zoomToProjectAndShowScore(_gid,dGIds[this.id.substring(this.id.indexOf("_") + 1)].x,true);
       },
         

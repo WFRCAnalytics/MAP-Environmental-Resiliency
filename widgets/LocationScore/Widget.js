@@ -61,9 +61,10 @@ function(declare, dom, BaseWidget, CheckBox, html, domReady, LayerInfos, Select,
 
             var _projLength = 0;
 
+            var _p     = dGIds[parseInt(dGIds.findIndex(obj => obj.g==_g))].p;
             var _n     = dGIds[parseInt(dGIds.findIndex(obj => obj.g==_g))].n;
             _innerHTML = "<b>Max Score: " + maxScore.toFixed(1) + "</b>";
-            _innerHTML += "<h1><b>" + _n + " Scores</b></h1>";
+            _innerHTML += "<h1><b>" + _p + ": " + _n + " Scores</b></h1>";
             _innerHTML += "<br/>";
 
             var _segs = dSegs.filter(o => o['g'] == _g);

@@ -297,7 +297,7 @@
         "id": "widgets_Report_Widget_40"
       },
       {
-        "name": "Location Score",
+        "name": "Project Scores",
         "version": "2.20",
         "IsController": false,
         "uri": "widgets/LocationScore/Widget",

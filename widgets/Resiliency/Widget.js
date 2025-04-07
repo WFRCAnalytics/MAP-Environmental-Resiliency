@@ -1199,8 +1199,12 @@ define(['dojo/_base/declare',
               if (currentLayerInfo.title == _layers[l].LayerName) {
                 var _lyr = layerInfosObject._layerInfos[j].layerObject;
                 if (dom.byId('chk' + _layers[l].LayerCode).checked==true) {
-                  var _checktolimit = Math.min(curCatNumCheckedLayers[c], curCatMaxOuts[c])
-                  var _opacity = curOpacity * (1 / _checktolimit) * (curCatWeights[c] / 10);  
+                  if (dom.byId('chkAutoOpacity').checked==true) {
+                    var _checktolimit = Math.min(curCatNumCheckedLayers[c], curCatMaxOuts[c])
+                    var _opacity = curOpacity * (1 / _checktolimit) * (curCatWeights[c] / 10);
+                  } else {
+                    var _opacity = curOpacity;
+                  }
                   _lyr.setOpacity(_opacity)
                   _lyr.show();
                 } else {
@@ -1210,6 +1214,11 @@ define(['dojo/_base/declare',
             }
           }
         }
+      },
+
+      _checkAutoOpacity: function() {
+        console.log('_checkAutoOpacity');
+        wR._updateLayerDisplay();
       },
 
       _expand: function() {

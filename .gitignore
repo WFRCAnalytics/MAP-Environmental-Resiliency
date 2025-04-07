@@ -1,4 +1,4 @@
 **/.DS_Store
-_dataprep/data/UT_shapefile_wetlands/*
-_dataprep/data/Water-Related-Land-Use/*
-_dataprep/intermediate/*
+data/UT_shapefile_wetlands/*
+data/Water-Related-Land-Use/*
+intermediate/*
